@@ -29,7 +29,23 @@ get_tmux_option() {
     local default_value="$2"
     local option_value
     
-    option_value=$(tmux show-option -gqv "$option")
+    # In test mode, use environment variables instead of tmux
+    if [ -n "${TMUX_TEST_MODE:-}" ]; then
+        local var_name="TMUX_OPT_${option//@/_}"
+        var_name="${var_name//-/_}"
+        eval "option_value=\${${var_name}:-}"
+        if [ -z "$option_value" ]; then
+            echo "$default_value"
+        else
+            echo "$option_value"
+        fi
+        return
+    fi
+    
+    # Check if tmux is available and we're in a tmux session
+    if command -v tmux &> /dev/null && [ -n "${TMUX:-}" ]; then
+        option_value=$(tmux show-option -gqv "$option" 2>/dev/null)
+    fi
     
     if [ -z "$option_value" ]; then
         echo "$default_value"
