@@ -56,6 +56,7 @@ get_tmux_option() {
 
 # Main function
 main() {
+    
     # Parse arguments
     local args
     args=$(parse_args "$@")
