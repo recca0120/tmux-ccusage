@@ -73,6 +73,18 @@ else
     source test/test_cache.sh
 fi
 
+# Test formatter functionality
+echo
+echo "=== Testing Formatter ==="
+if [ ! -f "scripts/formatter.sh" ]; then
+    echo "✗ formatter.sh not yet implemented (expected in TDD)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+else
+    # Run formatter tests
+    source test/test_formatter.sh
+fi
+
 # Summary
 echo
 echo "=== Test Summary ==="
