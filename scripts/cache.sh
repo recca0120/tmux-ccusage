@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # Cache management for tmux-ccusage
-# shellcheck disable=SC2155
 
 # Default cache settings (evaluated at runtime)
 get_cache_dir() {
