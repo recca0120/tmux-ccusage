@@ -65,6 +65,7 @@ test_format_remaining() {
     export CCUSAGE_SUBSCRIPTION_AMOUNT="200"
     local result=$(echo "$MOCK_JSON" | format_remaining)
     assert_equals "\$39.45/\$200" "$result" "Should show remaining amount"
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
 }
 
 # Test format_percentage
@@ -74,6 +75,7 @@ test_format_percentage() {
     export CCUSAGE_SUBSCRIPTION_AMOUNT="200"
     local result=$(echo "$MOCK_JSON" | format_percentage)
     assert_equals "80.3%" "$result" "Should show usage percentage"
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
 }
 
 # Test format_status with warning colors
@@ -93,6 +95,10 @@ test_format_status_normal() {
     else
         assert_equals "contains $100.00" "$result" "Should contain cost in normal status"
     fi
+    
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_WARNING_THRESHOLD
+    unset CCUSAGE_CRITICAL_THRESHOLD
 }
 
 # Test custom format
@@ -102,6 +108,7 @@ test_custom_format() {
     export CCUSAGE_CUSTOM_FORMAT='Daily: #{daily} / All: #{total}'
     local result=$(echo "$MOCK_JSON" | format_custom)
     assert_equals "Daily: \$17.96 / All: \$160.55" "$result" "Should use custom format"
+    unset CCUSAGE_CUSTOM_FORMAT
 }
 
 # Test format with no data

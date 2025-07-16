@@ -97,6 +97,7 @@ fi
 echo
 echo "=== Testing Integration ==="
 if [ -f "tmux-ccusage.sh" ]; then
+    PROJECT_DIR="$(pwd)"
     source test/test_integration.sh
 else
     echo "✗ Main script not found"
