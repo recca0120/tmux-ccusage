@@ -2,12 +2,20 @@
 
 # Simple test runner for tmux-ccusage
 
+# Don't use strict mode in tests as it may cause issues with test assertions
+set +e
+
 cd "$(dirname "$0")/.."
 
 # Test counters
 TESTS_RUN=0
 TESTS_PASSED=0
 TESTS_FAILED=0
+
+# Enable debug mode if CI environment
+if [ -n "${CI:-}" ]; then
+    set -x
+fi
 
 # Test functions
 assert_equals() {

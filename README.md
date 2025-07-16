@@ -2,7 +2,10 @@
 
 A tmux plugin to display Claude API usage information in your status bar.
 
-![tmux-ccusage demo](https://img.shields.io/badge/tmux-ccusage-green)
+[![CI](https://github.com/recca0120/tmux-ccusage/actions/workflows/ci.yml/badge.svg)](https://github.com/recca0120/tmux-ccusage/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/recca0120/tmux-ccusage/branch/main/graph/badge.svg)](https://codecov.io/gh/recca0120/tmux-ccusage)
+![tmux-ccusage](https://img.shields.io/badge/tmux-ccusage-green)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
 
@@ -171,14 +174,36 @@ set -g status-right '#{ccusage_custom} | %H:%M'
 
 ### Running Tests
 
-The project uses TDD with comprehensive test coverage:
+The project uses TDD with comprehensive test coverage using both custom test framework and Bats:
 
 ```bash
-# Run all tests
+# Run all tests (original framework)
 ./test/test_runner.sh
 
-# Run specific test suite
-./test/run_tests.sh
+# Run Bats tests
+./test/run_bats_tests.sh
+
+# Run all Bats tests manually
+bats test/bats/*.bats
+
+# Run with TAP output
+bats test/bats/*.bats --formatter tap
+
+# Run specific test file
+bats test/bats/test_json_parser.bats
+```
+
+#### Installing Bats
+
+```bash
+# macOS
+brew install bats-core
+
+# Ubuntu/Debian
+sudo apt-get install bats
+
+# Using npm
+npm install -g bats
 ```
 
 ### Project Structure
