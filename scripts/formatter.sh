@@ -11,6 +11,7 @@ fi
 
 # Only source if not already loaded
 if ! command -v get_today_cost &> /dev/null; then
+    # shellcheck source=scripts/json_parser.sh
     source "$SCRIPT_DIR/json_parser.sh"
 fi
 
