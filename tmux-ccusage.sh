@@ -92,6 +92,9 @@ main() {
             "team")
                 CCUSAGE_SUBSCRIPTION_AMOUNT="25"
                 ;;
+            *)
+                # Unknown plan, keep current subscription amount
+                ;;
         esac
     fi
     

@@ -93,13 +93,13 @@ get_cached_or_fetch() {
         # Fetch fresh data
         local data
         if [ -n "$args" ]; then
-            data=$(ccusage "$report_type" $args -j 2>/dev/null)
+            data=$(ccusage "$report_type" "$args" -j 2>/dev/null)
         else
             data=$(ccusage "$report_type" -j 2>/dev/null)
         fi
         
         # Cache the data if fetch was successful
-        if [ $? -eq 0 ] && [ -n "$data" ]; then
+        if [ -n "$data" ]; then
             echo "$data" | write_cache
             echo "$data"
         else
