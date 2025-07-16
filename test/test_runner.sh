@@ -79,6 +79,10 @@ else
     SCRIPT_DIR="$(pwd)/test"
     PROJECT_DIR="$(pwd)"
     source test/test_cache.sh
+    
+    # Clean up environment variables after cache tests
+    unset CCUSAGE_CACHE_DIR
+    unset CCUSAGE_CACHE_TTL
 fi
 
 # Test formatter functionality
@@ -91,6 +95,12 @@ if [ ! -f "scripts/formatter.sh" ]; then
 else
     # Run formatter tests
     source test/test_formatter.sh
+    
+    # Clean up environment variables after formatter tests
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_CUSTOM_FORMAT
+    unset CCUSAGE_WARNING_THRESHOLD
+    unset CCUSAGE_CRITICAL_THRESHOLD
 fi
 
 # Integration tests

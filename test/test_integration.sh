@@ -35,10 +35,16 @@ test_main_script() {
 test_env_vars() {
     echo "Testing environment variables..."
     
+    # Clear any existing environment variables that might interfere
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_CACHE_DIR
+    unset CCUSAGE_CACHE_TTL
+    unset CCUSAGE_OFFLINE
+    
     # Test subscription amount with TMUX_TEST_MODE  
-    # Use bash -c to ensure clean environment
+    # Use env -i to ensure completely clean environment, then set only what we need
     local result
-    result=$(bash -c "cd '$PROJECT_DIR' && TMUX_TEST_MODE=1 CCUSAGE_SUBSCRIPTION_AMOUNT=500 ./tmux-ccusage.sh percentage" 2>/dev/null)
+    result=$(env -i HOME="$HOME" PATH="$PATH" bash -c "cd '$PROJECT_DIR' && TMUX_TEST_MODE=1 CCUSAGE_SUBSCRIPTION_AMOUNT=500 ./tmux-ccusage.sh percentage" 2>/dev/null)
     if [[ "$result" =~ ^[0-9]+\.[0-9]+%$ ]] || [[ "$result" == "N/A" ]]; then
         assert_equals "matches" "matches" "Percentage format should work with env var"
     else
@@ -50,6 +56,12 @@ test_env_vars() {
 test_cache_integration() {
     echo "Testing cache integration..."
     
+    # Clear any existing environment variables that might interfere
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_CACHE_DIR
+    unset CCUSAGE_CACHE_TTL
+    unset CCUSAGE_OFFLINE
+    
     # Set up test cache directory
     local test_cache_dir="$PROJECT_DIR/test/tmp/cache_integration"
     mkdir -p "$test_cache_dir"
@@ -58,15 +70,15 @@ test_cache_integration() {
     rm -f "$test_cache_dir/ccusage.json"
     rm -f ~/.cache/tmux-ccusage/ccusage.json
     
-    # First call should create cache - use bash -c for clean environment
+    # First call should create cache - use env -i for completely clean environment
     local start_time=$(date +%s)
-    bash -c "cd '$PROJECT_DIR' && TMUX_TEST_MODE=1 CCUSAGE_CACHE_DIR='$test_cache_dir' ./tmux-ccusage.sh" > /dev/null 2>&1
+    env -i HOME="$HOME" PATH="$PATH" bash -c "cd '$PROJECT_DIR' && TMUX_TEST_MODE=1 CCUSAGE_CACHE_DIR='$test_cache_dir' ./tmux-ccusage.sh" > /dev/null 2>&1
     local end_time=$(date +%s)
     local first_duration=$((end_time - start_time))
     
     # Second call should use cache (faster)
     start_time=$(date +%s)
-    bash -c "cd '$PROJECT_DIR' && TMUX_TEST_MODE=1 CCUSAGE_CACHE_DIR='$test_cache_dir' ./tmux-ccusage.sh" > /dev/null 2>&1
+    env -i HOME="$HOME" PATH="$PATH" bash -c "cd '$PROJECT_DIR' && TMUX_TEST_MODE=1 CCUSAGE_CACHE_DIR='$test_cache_dir' ./tmux-ccusage.sh" > /dev/null 2>&1
     end_time=$(date +%s)
     local second_duration=$((end_time - start_time))
     
