@@ -59,6 +59,20 @@ else
     assert_equals "17.96" "$result" "get_cost_by_date should return 17.96"
 fi
 
+# Test cache functionality
+echo
+echo "=== Testing Cache ==="
+if [ ! -f "scripts/cache.sh" ]; then
+    echo "✗ cache.sh not yet implemented (expected in TDD)"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+else
+    # Run cache tests
+    SCRIPT_DIR="$(pwd)/test"
+    PROJECT_DIR="$(pwd)"
+    source test/test_cache.sh
+fi
+
 # Summary
 echo
 echo "=== Test Summary ==="
