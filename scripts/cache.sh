@@ -3,37 +3,55 @@
 # Cache management for tmux-ccusage
 # shellcheck disable=SC2155
 
-# Default cache settings
-CCUSAGE_CACHE_DIR="${CCUSAGE_CACHE_DIR:-$HOME/.cache/tmux-ccusage}"
-CCUSAGE_CACHE_TTL="${CCUSAGE_CACHE_TTL:-30}"  # 30 seconds default
-CACHE_FILE="$CCUSAGE_CACHE_DIR/ccusage.json"
+# Default cache settings (evaluated at runtime)
+get_cache_dir() {
+    echo "${CCUSAGE_CACHE_DIR:-$HOME/.cache/tmux-ccusage}"
+}
 
-# Ensure cache directory exists
-mkdir -p "$CCUSAGE_CACHE_DIR"
+get_cache_ttl() {
+    echo "${CCUSAGE_CACHE_TTL:-30}"
+}
+
+get_cache_file() {
+    echo "$(get_cache_dir)/ccusage.json"
+}
 
 # Write data to cache
 write_cache() {
     local data
     data=$(cat)
     
+    local cache_dir
+    cache_dir=$(get_cache_dir)
+    local cache_file
+    cache_file=$(get_cache_file)
+    
     # Ensure directory exists
-    mkdir -p "$CCUSAGE_CACHE_DIR"
+    mkdir -p "$cache_dir"
     
     # Write to cache file
-    echo "$data" > "$CACHE_FILE"
+    echo "$data" > "$cache_file"
 }
 
 # Read data from cache
 read_cache() {
-    if [ -f "$CACHE_FILE" ]; then
-        cat "$CACHE_FILE"
+    local cache_file
+    cache_file=$(get_cache_file)
+    
+    if [ -f "$cache_file" ]; then
+        cat "$cache_file"
     fi
 }
 
 # Check if cache is valid (not expired)
 is_cache_valid() {
+    local cache_file
+    cache_file=$(get_cache_file)
+    local cache_ttl
+    cache_ttl=$(get_cache_ttl)
+    
     # Check if cache file exists
-    if [ ! -f "$CACHE_FILE" ]; then
+    if [ ! -f "$cache_file" ]; then
         return 1
     fi
     
@@ -41,10 +59,10 @@ is_cache_valid() {
     local file_time
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS
-        file_time=$(stat -f %m "$CACHE_FILE" 2>/dev/null)
+        file_time=$(stat -f %m "$cache_file" 2>/dev/null)
     else
         # Linux
-        file_time=$(stat -c %Y "$CACHE_FILE" 2>/dev/null)
+        file_time=$(stat -c %Y "$cache_file" 2>/dev/null)
     fi
     
     # Get current time
@@ -56,7 +74,7 @@ is_cache_valid() {
     age=$((current_time - file_time))
     
     # Check if cache is still valid
-    if [ "$age" -lt "$CCUSAGE_CACHE_TTL" ]; then
+    if [ "$age" -lt "$cache_ttl" ]; then
         return 0  # Valid
     else
         return 1  # Expired
@@ -94,5 +112,7 @@ get_cached_or_fetch() {
 
 # Clear cache
 clear_cache() {
-    rm -f "$CACHE_FILE"
+    local cache_file
+    cache_file=$(get_cache_file)
+    rm -f "$cache_file"
 }

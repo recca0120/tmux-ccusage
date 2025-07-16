@@ -8,7 +8,6 @@ mkdir -p "$TEST_CACHE_DIR"
 
 # Mock data
 MOCK_JSON='{"daily":[{"date":"2025-07-17","totalCost":17.96}],"totals":{"totalCost":160.55}}'
-CACHE_FILE="$TEST_CACHE_DIR/ccusage.json"
 
 # Test cache write
 test_cache_write() {
@@ -24,14 +23,16 @@ test_cache_write() {
     echo "$MOCK_JSON" | write_cache
     
     # Check if cache file exists
-    if [ -f "$CACHE_FILE" ]; then
+    local cache_file
+    cache_file=$(get_cache_file)
+    if [ -f "$cache_file" ]; then
         assert_equals "exists" "exists" "Cache file should be created"
     else
         assert_equals "exists" "not exists" "Cache file should be created"
     fi
     
     # Check cache content
-    local cached_content=$(cat "$CACHE_FILE")
+    local cached_content=$(cat "$cache_file")
     assert_equals "$MOCK_JSON" "$cached_content" "Cache should contain the JSON data"
 }
 
@@ -42,7 +43,9 @@ test_cache_read() {
     export CCUSAGE_CACHE_DIR="$TEST_CACHE_DIR"
     
     # Write test data to cache
-    echo "$MOCK_JSON" > "$CACHE_FILE"
+    local cache_file
+    cache_file=$(get_cache_file)
+    echo "$MOCK_JSON" > "$cache_file"
     
     # Read from cache
     local result=$(read_cache)
@@ -57,7 +60,9 @@ test_cache_expiry() {
     export CCUSAGE_CACHE_TTL=2  # 2 seconds for testing
     
     # Write to cache
-    echo "$MOCK_JSON" > "$CACHE_FILE"
+    local cache_file
+    cache_file=$(get_cache_file)
+    echo "$MOCK_JSON" > "$cache_file"
     
     # Check if cache is valid
     is_cache_valid
@@ -78,7 +83,9 @@ test_cache_no_file() {
     export CCUSAGE_CACHE_DIR="$TEST_CACHE_DIR"
     
     # Remove cache file if exists
-    rm -f "$CACHE_FILE"
+    local cache_file
+    cache_file=$(get_cache_file)
+    rm -f "$cache_file"
     
     # Check if cache is invalid
     is_cache_valid
@@ -97,7 +104,9 @@ test_get_cached_or_fetch() {
     export CCUSAGE_CACHE_TTL=30
     
     # Remove cache to test fresh fetch
-    rm -f "$CACHE_FILE"
+    local cache_file
+    cache_file=$(get_cache_file)
+    rm -f "$cache_file"
     
     # Mock ccusage command
     ccusage() {
@@ -110,7 +119,8 @@ test_get_cached_or_fetch() {
     assert_equals "$MOCK_JSON" "$result" "Should fetch fresh data"
     
     # Check if cache was created
-    if [ -f "$CACHE_FILE" ]; then
+    cache_file=$(get_cache_file)
+    if [ -f "$cache_file" ]; then
         assert_equals "exists" "exists" "Cache file should be created after fetch"
     else
         assert_equals "exists" "not exists" "Cache file should be created after fetch"
@@ -131,3 +141,5 @@ test_get_cached_or_fetch
 
 # Cleanup
 rm -rf "$TEST_CACHE_DIR"
+unset CCUSAGE_CACHE_DIR
+unset CCUSAGE_CACHE_TTL
