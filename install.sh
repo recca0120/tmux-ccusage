@@ -60,7 +60,7 @@ chmod +x "$INSTALL_DIR/scripts"/*.sh
 if [ -d "${HOME}/.tmux/plugins/tpm" ]; then
     echo ""
     echo "TPM detected. Add this line to your ~/.tmux.conf:"
-    echo "  set -g @plugin 'recca0120/tmux-claude'"
+    echo "  set -g @plugin 'recca0120/tmux-ccusage'"
     echo ""
     echo "Then press prefix + I to install the plugin."
 else

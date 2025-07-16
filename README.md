@@ -27,7 +27,7 @@ A tmux plugin to display Claude API usage information in your status bar.
 Add plugin to the list of TPM plugins in `.tmux.conf`:
 
 ```tmux
-set -g @plugin 'recca0120/tmux-claude'
+set -g @plugin 'recca0120/tmux-ccusage'
 ```
 
 Press `prefix + I` to fetch the plugin.
@@ -37,7 +37,7 @@ Press `prefix + I` to fetch the plugin.
 Clone the repo:
 
 ```bash
-git clone https://github.com/recca0120/tmux-claude ~/clone/path
+git clone https://github.com/recca0120/tmux-ccusage ~/clone/path
 ```
 
 Add this line to `.tmux.conf`:
@@ -146,14 +146,14 @@ export CCUSAGE_CACHE_TTL=60
 ### Minimal Setup
 
 ```tmux
-set -g @plugin 'recca0120/tmux-claude'
+set -g @plugin 'recca0120/tmux-ccusage'
 set -g status-right 'Claude: #{ccusage_today} | %H:%M'
 ```
 
 ### Full Featured Setup
 
 ```tmux
-set -g @plugin 'recca0120/tmux-claude'
+set -g @plugin 'recca0120/tmux-ccusage'
 set -g @ccusage_subscription_amount '200'
 set -g @ccusage_warning_threshold '70'
 set -g @ccusage_critical_threshold '90'
