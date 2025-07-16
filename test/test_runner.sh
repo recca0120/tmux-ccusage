@@ -85,6 +85,17 @@ else
     source test/test_formatter.sh
 fi
 
+# Integration tests
+echo
+echo "=== Testing Integration ==="
+if [ -f "tmux-ccusage.sh" ]; then
+    source test/test_integration.sh
+else
+    echo "✗ Main script not found"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+
 # Summary
 echo
 echo "=== Test Summary ==="
