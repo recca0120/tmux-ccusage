@@ -37,19 +37,22 @@ is_cache_valid() {
     fi
     
     # Get file modification time
+    local file_time
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS
-        local file_time=$(stat -f %m "$CACHE_FILE" 2>/dev/null)
+        file_time=$(stat -f %m "$CACHE_FILE" 2>/dev/null)
     else
         # Linux
-        local file_time=$(stat -c %Y "$CACHE_FILE" 2>/dev/null)
+        file_time=$(stat -c %Y "$CACHE_FILE" 2>/dev/null)
     fi
     
     # Get current time
-    local current_time=$(date +%s)
+    local current_time
+    current_time=$(date +%s)
     
     # Calculate age
-    local age=$((current_time - file_time))
+    local age
+    age=$((current_time - file_time))
     
     # Check if cache is still valid
     if [ "$age" -lt "$CCUSAGE_CACHE_TTL" ]; then
