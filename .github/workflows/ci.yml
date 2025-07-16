@@ -87,12 +87,60 @@ jobs:
     - name: Run original tests
       run: |
         export PATH="$HOME/.local/bin:$PATH"
+        export TMUX_TEST_MODE=1
         ./test/test_runner.sh
     
     - name: Run Bats tests
       run: |
         export PATH="$HOME/.local/bin:$PATH"
+        export TMUX_TEST_MODE=1
         bats test/bats/*.bats --formatter tap
+    
+    - name: Start tmux server for integration tests
+      run: |
+        # Start tmux server in detached mode
+        tmux new-session -d -s ci-test
+        # Wait a moment for server to start
+        sleep 1
+        # Verify tmux is running
+        tmux list-sessions
+    
+    - name: Run tmux integration tests
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        export TMUX="/tmp/tmux-$(id -u)/default,1234,0"
+        
+        # Test basic functionality with real tmux
+        echo "Testing with real tmux session..."
+        
+        # Test that our script works in tmux environment
+        result=$(tmux run-shell "$PWD/tmux-ccusage.sh")
+        echo "Result: $result"
+        
+        # Test setting tmux options
+        tmux set-option -g @ccusage_subscription_amount 100
+        tmux set-option -g @ccusage_warning_threshold 80
+        
+        # Test that options are read correctly
+        result=$(tmux run-shell "$PWD/tmux-ccusage.sh percentage")
+        echo "Percentage result: $result"
+        
+        # Test status integration
+        tmux set-option -g status-right "#($PWD/tmux-ccusage.sh) | %H:%M"
+        tmux refresh-client
+        
+        # Verify status is working
+        status_right=$(tmux show-option -gv status-right)
+        echo "Status right: $status_right"
+        
+        echo "✓ tmux integration tests passed"
+    
+    - name: Cleanup tmux session
+      if: always()
+      run: |
+        # Kill tmux session if it exists
+        tmux kill-session -t ci-test 2>/dev/null || true
+        tmux kill-server 2>/dev/null || true
     
     - name: Install kcov (Ubuntu only)
       if: matrix.os == 'ubuntu-latest'
@@ -106,6 +154,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         export PATH="$HOME/.local/bin:$PATH"
+        export TMUX_TEST_MODE=1
         mkdir -p coverage
         
         # Run tests with kcov

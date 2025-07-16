@@ -42,10 +42,13 @@ format_both() {
 
 # Format remaining quota
 format_remaining() {
+    local json_data
+    json_data=$(cat)
+    
     local total
     local subscription="${CCUSAGE_SUBSCRIPTION_AMOUNT:-0}"
     
-    total=$(get_total_cost)
+    total=$(echo "$json_data" | get_total_cost)
     
     # Calculate remaining
     local remaining
@@ -61,10 +64,13 @@ format_remaining() {
 
 # Format usage percentage
 format_percentage() {
+    local json_data
+    json_data=$(cat)
+    
     local total
     local subscription="${CCUSAGE_SUBSCRIPTION_AMOUNT:-0}"
     
-    total=$(get_total_cost)
+    total=$(echo "$json_data" | get_total_cost)
     
     if [ "$subscription" = "0" ]; then
         echo "N/A"
@@ -80,12 +86,15 @@ format_percentage() {
 
 # Format status with color coding
 format_status() {
+    local json_data
+    json_data=$(cat)
+    
     local total
     local subscription="${CCUSAGE_SUBSCRIPTION_AMOUNT:-0}"
     local warning_threshold="${CCUSAGE_WARNING_THRESHOLD:-80}"
     local critical_threshold="${CCUSAGE_CRITICAL_THRESHOLD:-95}"
     
-    total=$(get_total_cost)
+    total=$(echo "$json_data" | get_total_cost)
     
     # Calculate percentage if subscription is set
     local percentage=0
