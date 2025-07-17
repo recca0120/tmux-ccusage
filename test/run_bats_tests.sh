@@ -52,8 +52,11 @@ cd "$PROJECT_DIR"
 
 # Set TERM if not set to avoid tput errors
 if [ -z "${TERM:-}" ]; then
-    export TERM=dumb
+    export TERM=xterm
 fi
+
+# Suppress tput errors from Bats
+export BATS_NO_HEADER=1
 
 # Choose formatter based on environment
 if [ -n "${GITHUB_ACTIONS:-}" ]; then
@@ -65,8 +68,18 @@ else
 fi
 
 # Run tests and capture exit status properly
-bats test/bats/*.bats $FORMATTER
-BATS_EXIT_CODE=$?
+# Create a temporary file to store the exit code
+TMPFILE=$(mktemp)
+
+# Run bats and filter errors
+(
+    bats test/bats/*.bats $FORMATTER 2>&1
+    echo $? > "$TMPFILE"
+) | grep -v "tput: No value" | grep -v "printf: write error: Broken pipe"
+
+# Get the actual exit code
+BATS_EXIT_CODE=$(cat "$TMPFILE")
+rm -f "$TMPFILE"
 
 echo ""
 if [ $BATS_EXIT_CODE -eq 0 ]; then
