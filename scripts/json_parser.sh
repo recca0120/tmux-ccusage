@@ -18,7 +18,7 @@ extract_last_daily_cost() {
     
     # Find all totalCost values in daily entries and get the last one
     local costs
-    costs=$(echo "$json_data" | grep -A 100 '"daily"' | grep -B 100 '^\s*]' | grep '"totalCost"' | tail -1 | sed 's/.*"totalCost":[[:space:]]*\([0-9.]*\).*/\1/')
+    costs=$(echo "$json_data" | grep -A 100 '"daily"' | grep -B 100 '^[[:space:]]*]' | grep '"totalCost"' | tail -1 | sed 's/.*"totalCost":[[:space:]]*\([0-9.]*\).*/\1/')
     
     if [ -n "$costs" ]; then
         echo "$costs"
