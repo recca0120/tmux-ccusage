@@ -94,7 +94,7 @@ jobs:
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         export TMUX_TEST_MODE=1
-        bats test/bats/*.bats --formatter tap
+        ./test/run_bats_tests.sh
     
     - name: Comprehensive tmux integration tests
       run: |
