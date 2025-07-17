@@ -25,6 +25,10 @@ if ! command -v bats &> /dev/null; then
     fi
 fi
 
+# Debug: Show bats version and location
+echo "Bats version: $(bats --version)"
+echo "Bats location: $(which bats)"
+
 # Color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -50,6 +54,10 @@ echo -e "${BOLD}${BLUE}====================${NC}"
 
 cd "$PROJECT_DIR"
 
+# Debug: Show test files
+echo "Test files:"
+ls -la test/bats/*.bats || echo "No bats test files found!"
+
 # Set TERM if not set to avoid tput errors
 if [ -z "${TERM:-}" ]; then
     export TERM=xterm
@@ -68,18 +76,25 @@ else
 fi
 
 # Run tests and capture exit status properly
-# Create a temporary file to store the exit code
-TMPFILE=$(mktemp)
-
-# Run bats and filter errors
-(
-    bats test/bats/*.bats $FORMATTER 2>&1
-    echo $? > "$TMPFILE"
-) | grep -v "tput: No value" | grep -v "printf: write error: Broken pipe"
-
-# Get the actual exit code
-BATS_EXIT_CODE=$(cat "$TMPFILE")
-rm -f "$TMPFILE"
+if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then
+    # In CI, show all output for debugging
+    bats test/bats/*.bats $FORMATTER
+    BATS_EXIT_CODE=$?
+else
+    # In local environment, filter out annoying errors
+    # Create a temporary file to store the exit code
+    TMPFILE=$(mktemp)
+    
+    # Run bats and filter errors
+    (
+        bats test/bats/*.bats $FORMATTER 2>&1
+        echo $? > "$TMPFILE"
+    ) | grep -v "tput: No value" | grep -v "printf: write error: Broken pipe"
+    
+    # Get the actual exit code
+    BATS_EXIT_CODE=$(cat "$TMPFILE")
+    rm -f "$TMPFILE"
+fi
 
 echo ""
 if [ $BATS_EXIT_CODE -eq 0 ]; then
