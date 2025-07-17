@@ -85,14 +85,17 @@ else
     # Create a temporary file to store the exit code
     TMPFILE=$(mktemp)
     
-    # Run bats and filter errors
-    (
-        bats test/bats/*.bats $FORMATTER 2>&1
-        echo $? > "$TMPFILE"
-    ) | grep -v "tput: No value" | grep -v "printf: write error: Broken pipe"
+    # Run bats and filter errors more aggressively
+    exec 3>&1 4>&2
+    exec 1> >(grep -v "tput: No value" | grep -v "printf: write error: Broken pipe" >&3)
+    exec 2> >(grep -v "tput: No value" | grep -v "printf: write error: Broken pipe" >&4)
     
-    # Get the actual exit code
-    BATS_EXIT_CODE=$(cat "$TMPFILE")
+    bats test/bats/*.bats $FORMATTER
+    BATS_EXIT_CODE=$?
+    
+    exec 1>&3 2>&4
+    exec 3>&- 4>&-
+    
     rm -f "$TMPFILE"
 fi
 
