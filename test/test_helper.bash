@@ -21,6 +21,13 @@ ccusage() {
             echo "15.3.1"
             ;;
         "daily"|"monthly"|"session"|"blocks"|*)
+            # Check if offline mode is requested and no cache exists
+            if [[ "$@" == *"--offline"* ]] && [ ! -f "$CCUSAGE_CACHE_DIR/ccusage.json" ]; then
+                # Simulate error when offline with no cache
+                echo "Error: Offline mode requested but no cached data available" >&2
+                return 1
+            fi
+            
             if [[ "$@" == *"-j"* ]] || [[ "$@" == *"--json"* ]]; then
                 echo '{"daily":[{"date":"2025-07-17","totalCost":17.96}],"totals":{"totalCost":160.55}}'
             else

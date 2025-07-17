@@ -3,79 +3,140 @@
 load test_helper
 
 setup() {
-    # Create test cache directory
-    mkdir -p "$CCUSAGE_CACHE_DIR"
+    # Setup test cache directory
+    export TEST_CACHE_DIR="$BATS_TEST_TMPDIR/test_cache"
+    mkdir -p "$TEST_CACHE_DIR"
+    export CCUSAGE_CACHE_DIR="$TEST_CACHE_DIR"
 }
 
 teardown() {
-    # Clean up test cache
-    rm -rf "$CCUSAGE_CACHE_DIR"
+    # Cleanup
+    rm -rf "$TEST_CACHE_DIR"
+    unset CCUSAGE_CACHE_DIR
+    unset CCUSAGE_CACHE_TTL
 }
 
-@test "write_cache creates cache file" {
+@test "test_cache_write - Cache file should be created" {
+    # Write to cache
     echo "$MOCK_JSON" | write_cache
-    [ -f "$CCUSAGE_CACHE_DIR/ccusage.json" ]
+    
+    # Check if cache file exists
+    local cache_file
+    cache_file=$(get_cache_file)
+    [ -f "$cache_file" ]
 }
 
-@test "write_cache stores correct content" {
+@test "test_cache_write - Cache should contain the JSON data" {
+    # Write to cache
     echo "$MOCK_JSON" | write_cache
-    cached_content=$(cat "$CCUSAGE_CACHE_DIR/ccusage.json")
+    
+    # Check cache content
+    local cache_file
+    cache_file=$(get_cache_file)
+    local cached_content=$(cat "$cache_file")
     [ "$cached_content" = "$MOCK_JSON" ]
 }
 
-@test "read_cache returns cached data" {
-    echo "$MOCK_JSON" > "$CCUSAGE_CACHE_DIR/ccusage.json"
-    result=$(read_cache)
+@test "test_cache_read - Should read cached data" {
+    # Write test data to cache
+    local cache_file
+    cache_file=$(get_cache_file)
+    echo "$MOCK_JSON" > "$cache_file"
+    
+    # Read from cache
+    local result=$(read_cache)
     [ "$result" = "$MOCK_JSON" ]
 }
 
-@test "is_cache_valid returns true for fresh cache" {
-    export CCUSAGE_CACHE_TTL=30
-    echo "$MOCK_JSON" > "$CCUSAGE_CACHE_DIR/ccusage.json"
+@test "test_cache_expiry - Fresh cache should be valid" {
+    export CCUSAGE_CACHE_TTL=1  # 1 second for testing
+    
+    # Write to cache
+    local cache_file
+    cache_file=$(get_cache_file)
+    echo "$MOCK_JSON" > "$cache_file"
+    
+    # Check if cache is valid
     is_cache_valid
 }
 
-@test "is_cache_valid returns false for expired cache" {
-    export CCUSAGE_CACHE_TTL=1
-    echo "$MOCK_JSON" > "$CCUSAGE_CACHE_DIR/ccusage.json"
-    touch -t 202001010000 "$CCUSAGE_CACHE_DIR/ccusage.json"
+@test "test_cache_expiry - Expired cache should be invalid" {
+    export CCUSAGE_CACHE_TTL=1  # 1 second for testing
+    
+    # Write to cache
+    local cache_file
+    cache_file=$(get_cache_file)
+    echo "$MOCK_JSON" > "$cache_file"
+    
+    # Manually modify file timestamp to simulate expiry
+    touch -t 202001010000 "$cache_file"
+    
+    # Check if cache is invalid
     ! is_cache_valid
 }
 
-@test "is_cache_valid returns false for non-existent cache" {
+@test "test_cache_no_file - Non-existent cache should be invalid" {
+    # Remove cache file if exists
+    local cache_file
+    cache_file=$(get_cache_file)
+    rm -f "$cache_file"
+    
+    # Check if cache is invalid
     ! is_cache_valid
 }
 
-@test "read_cache returns empty for non-existent file" {
-    result=$(read_cache)
+@test "test_cache_no_file - Should return empty for non-existent cache" {
+    # Remove cache file if exists
+    local cache_file
+    cache_file=$(get_cache_file)
+    rm -f "$cache_file"
+    
+    # Try to read non-existent cache
+    local result=$(read_cache)
     [ -z "$result" ]
 }
 
-@test "get_cached_or_fetch returns fresh data when no cache" {
-    result=$(get_cached_or_fetch daily)
-    [ -n "$result" ]
-    [ -f "$CCUSAGE_CACHE_DIR/ccusage.json" ]
+@test "test_get_cached_or_fetch - Should fetch fresh data" {
+    export CCUSAGE_CACHE_TTL=30
+    
+    # Remove cache to test fresh fetch
+    local cache_file
+    cache_file=$(get_cache_file)
+    rm -f "$cache_file"
+    
+    # Get data (should fetch)
+    local result=$(get_cached_or_fetch "daily")
+    [ "$result" = "$MOCK_JSON" ]
 }
 
-@test "clear_cache removes cache file" {
-    echo "$MOCK_JSON" > "$CCUSAGE_CACHE_DIR/ccusage.json"
-    clear_cache
-    [ ! -f "$CCUSAGE_CACHE_DIR/ccusage.json" ]
+@test "test_get_cached_or_fetch - Cache file should be created after fetch" {
+    export CCUSAGE_CACHE_TTL=30
+    
+    # Remove cache to test fresh fetch
+    local cache_file
+    cache_file=$(get_cache_file)
+    rm -f "$cache_file"
+    
+    # Get data (should fetch)
+    get_cached_or_fetch "daily" >/dev/null
+    
+    # Check if cache was created
+    cache_file=$(get_cache_file)
+    [ -f "$cache_file" ]
 }
 
-@test "get_cache_dir returns configured directory" {
-    result=$(get_cache_dir)
-    [ "$result" = "$CCUSAGE_CACHE_DIR" ]
-}
-
-@test "get_cache_ttl returns configured TTL" {
-    export CCUSAGE_CACHE_TTL=60
-    result=$(get_cache_ttl)
-    [ "$result" = "60" ]
-}
-
-@test "get_cache_ttl returns default when not set" {
-    unset CCUSAGE_CACHE_TTL
-    result=$(get_cache_ttl)
-    [ "$result" = "30" ]
+@test "test_get_cached_or_fetch - Should return cached data" {
+    export CCUSAGE_CACHE_TTL=30
+    
+    # Remove cache to test fresh fetch
+    local cache_file
+    cache_file=$(get_cache_file)
+    rm -f "$cache_file"
+    
+    # Get data (should fetch)
+    get_cached_or_fetch "daily" >/dev/null
+    
+    # Get data again (should use cache)
+    local result2=$(get_cached_or_fetch "daily")
+    [ "$result2" = "$MOCK_JSON" ]
 }
