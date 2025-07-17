@@ -5,10 +5,28 @@
 
 # Set TERM if not set
 if [ -z "${TERM:-}" ]; then
-    export TERM=xterm
+    export TERM=xterm-256color
 fi
 
-# Run bats and filter stderr
-exec 3>&1
-bats "$@" 2>&1 1>&3 | grep -v "tput: No value" | grep -v "printf: write error: Broken pipe" 1>&2
-exit ${PIPESTATUS[0]}
+# Add fake tput to PATH
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PATH="$SCRIPT_DIR:$PATH"
+ln -sf "$SCRIPT_DIR/fake-tput.sh" "$SCRIPT_DIR/tput" 2>/dev/null || true
+
+# Create a temporary file for exit code
+TMPFILE=$(mktemp)
+
+# Run bats with all output captured and filtered
+{
+    bats "$@" 2>&1
+    echo $? > "$TMPFILE"
+} | grep -v "tput: No value" | grep -v "printf: write error: Broken pipe" | grep -v "validator.bash: line 8"
+
+# Get the real exit code
+EXIT_CODE=$(cat "$TMPFILE")
+rm -f "$TMPFILE"
+
+# Clean up fake tput
+rm -f "$SCRIPT_DIR/tput"
+
+exit $EXIT_CODE

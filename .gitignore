@@ -4,6 +4,7 @@ CLAUDE.md
 test/tmp/
 test_output.txt
 *.log
+test/tput
 
 # Cache directories
 .cache/
