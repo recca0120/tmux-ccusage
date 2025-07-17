@@ -20,8 +20,9 @@ BLUE='\033[0;34m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
-# Disable colors in CI or if NO_COLOR is set
-if [ -n "${CI:-}" ] || [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then
+# Disable colors only if NO_COLOR is set or not a terminal
+# GitHub Actions supports ANSI colors
+if [ -n "${NO_COLOR:-}" ] || ([ ! -t 1 ] && [ -z "${GITHUB_ACTIONS:-}" ]); then
     RED=''
     GREEN=''
     YELLOW=''
