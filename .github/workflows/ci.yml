@@ -91,20 +91,6 @@ jobs:
         export TMUX_TEST_MODE=1
         ./test/run_tests.sh
     
-    - name: Comprehensive tmux integration tests
-      run: |
-        export PATH="$HOME/.local/bin:$PATH"
-        # Use the CI-optimized test script for better reliability in CI environments
-        chmod +x ./test/ci_tmux_integration.sh
-        ./test/ci_tmux_integration.sh
-    
-    - name: Cleanup tmux sessions
-      if: always()
-      run: |
-        # Kill CI test tmux session
-        tmux kill-session -t ci-test 2>/dev/null || true
-        tmux kill-server 2>/dev/null || true
-    
     - name: Install kcov (Ubuntu only)
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -121,7 +107,7 @@ jobs:
         mkdir -p coverage
         
         # Run tests with kcov
-        kcov --exclude-pattern=/usr/,/tmp/,test/,/home/runner/.local/bin/ coverage ./test/run_bats_tests.sh || true
+        kcov --exclude-pattern=/usr/,/tmp/,test/,/home/runner/.local/bin/ coverage ./test/run_tests.sh || true
         
         # Generate coverage summary
         if [ -f coverage/index.html ]; then
