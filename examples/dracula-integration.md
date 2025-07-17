@@ -36,7 +36,7 @@ set -g @dracula-show-powerline true
 set -g @dracula-show-left-icon session
 
 # Add ccusage to status-right
-set -g status-right '#[fg=#44475a,bg=#282a36]#[fg=#f8f8f2,bg=#44475a] #{ccusage_status} #[fg=#bd93f9,bg=#44475a]#[fg=#282a36,bg=#bd93f9] %H:%M '
+set -g status-right '#[fg=#44475a,bg=#282a36]#[fg=#f8f8f2,bg=#44475a] #(@ccusage_status) #[fg=#bd93f9,bg=#44475a]#[fg=#282a36,bg=#bd93f9] %H:%M '
 ```
 
 ### Option 2: Manual configuration with Dracula colors
@@ -47,44 +47,47 @@ set -g @ccusage_color_normal '#50fa7b'      # Green
 set -g @ccusage_color_warning '#f1fa8c'     # Yellow
 set -g @ccusage_color_critical '#ff5555'    # Red
 
-# Custom format with Dracula styling
-set -g @ccusage_status_format '#[fg=#bd93f9]💸 #[fg=#f8f8f2]$#{ccusage_daily_today}'
+# Configure ccusage subscription
+set -g @ccusage_subscription_amount '200'
 
-# Add to Dracula status modules
-set -g @dracula-plugins "cpu-usage ram-usage #{ccusage_status} time"
+# Add ccusage to status bar with Dracula colors
+set -g status-right '#[fg=#bd93f9]💸 #[fg=#f8f8f2]#(@ccusage_daily_today) | %H:%M'
 ```
 
-### Option 3: Integrate with Dracula's custom modules
+### Option 3: Custom status bar integration
 
-Create a custom Dracula module for ccusage:
+Create your own custom status bar with Dracula colors:
 
 ```bash
-# In your tmux.conf
-set -g @dracula-plugins "... ccusage ..."
-set -g @dracula-ccusage-colors "purple white"
-set -g @dracula-ccusage-text "#{ccusage_daily_today}"
+# Configure tmux-ccusage
+set -g @ccusage_subscription_amount '200'
+set -g @ccusage_warning_threshold '80'
+set -g @ccusage_critical_threshold '95'
+
+# Custom status bar with Dracula colors
+set -g status-right '#[fg=#8be9fd]Claude: #(@ccusage_daily_today) #[fg=#6272a4]| #[fg=#50fa7b]#(@ccusage_percentage) #[fg=#6272a4]| #[fg=#f8f8f2]%H:%M'
 ```
 
 ## Display Options
 
 ### Minimal display
 ```bash
-set -g status-right '#{ccusage_daily_today} | %H:%M'
+set -g status-right '#(@ccusage_daily_today) | %H:%M'
 ```
 
 ### With usage percentage
 ```bash
-set -g status-right '#{ccusage_percentage}% (#{ccusage_daily_today}) | %H:%M'
+set -g status-right '#(@ccusage_percentage) (#(@ccusage_daily_today)) | %H:%M'
 ```
 
 ### With remaining quota
 ```bash
-set -g status-right '#{ccusage_remaining} | %H:%M'
+set -g status-right '#(@ccusage_remaining) | %H:%M'
 ```
 
 ### Full status with colors
 ```bash
-set -g status-right '#[fg=#bd93f9]Claude: #[fg=#{ccusage_color_status}]#{ccusage_status} #[fg=#6272a4]| #[fg=#f8f8f2]%H:%M'
+set -g status-right '#[fg=#bd93f9]Claude: #[fg=#f8f8f2]#(@ccusage_status) #[fg=#6272a4]| #[fg=#f8f8f2]%H:%M'
 ```
 
 ## Color Customization

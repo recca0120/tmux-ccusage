@@ -63,36 +63,36 @@ Add any of the supported format strings to your status bar:
 
 ```tmux
 # Show today's cost
-set -g status-right 'Claude: #{ccusage_today} | %H:%M'
+set -g status-right 'Claude: #(@ccusage_today) | %H:%M'
 
 # Show total cost
-set -g status-right 'Claude Total: #{ccusage_total} | %H:%M'
+set -g status-right 'Claude Total: #(@ccusage_total) | %H:%M'
 
 # Show both today and total
-set -g status-right '#{ccusage_both} | %H:%M'
+set -g status-right '#(@ccusage_both) | %H:%M'
 
 # Show remaining quota
-set -g status-right 'Claude: #{ccusage_remaining} | %H:%M'
+set -g status-right 'Claude: #(@ccusage_remaining) | %H:%M'
 
 # Show usage percentage
-set -g status-right 'Claude: #{ccusage_percentage} used | %H:%M'
+set -g status-right 'Claude: #(@ccusage_percentage) used | %H:%M'
 
 # Show full status with colors
-set -g status-right 'Claude: #{ccusage_status} | %H:%M'
+set -g status-right 'Claude: #(@ccusage_status) | %H:%M'
 ```
 
 ### Available Format Strings
 
 | Format String | Description | Example Output |
 |--------------|-------------|----------------|
-| `#{ccusage_today}` | Today's cost | `$17.96` |
-| `#{ccusage_total}` | Total cost | `$160.55` |
-| `#{ccusage_both}` | Today and total | `Today: $17.96 \| Total: $160.55` |
-| `#{ccusage_monthly}` | Current month cost | `$450.25` |
-| `#{ccusage_remaining}` | Remaining quota | `$39.45/$200` |
-| `#{ccusage_percentage}` | Usage percentage | `80.3%` |
-| `#{ccusage_status}` | Full status with colors | `$160.55/$200 (80.3%)` |
-| `#{ccusage_custom}` | Custom format | Based on your template |
+| `#(@ccusage_today)` or `#(@ccusage_daily_today)` | Today's cost | `$17.96` |
+| `#(@ccusage_total)` or `#(@ccusage_daily_total)` | Total cost | `$160.55` |
+| `#(@ccusage_both)` | Today and total | `Today: $17.96 \| Total: $160.55` |
+| `#(@ccusage_monthly)` or `#(@ccusage_monthly_current)` | Current month cost | `$450.25` |
+| `#(@ccusage_remaining)` | Remaining quota | `$39.45/$200` |
+| `#(@ccusage_percentage)` | Usage percentage | `80.3%` |
+| `#(@ccusage_status)` | Full status with colors | `$160.55/$200 (80.3%)` |
+| `#(@ccusage_custom)` | Custom format | Based on your template |
 
 ## Configuration
 
@@ -150,7 +150,7 @@ export CCUSAGE_CACHE_TTL=60
 
 ```tmux
 set -g @plugin 'recca0120/tmux-ccusage'
-set -g status-right 'Claude: #{ccusage_today} | %H:%M'
+set -g status-right 'Claude: #(@ccusage_today) | %H:%M'
 ```
 
 ### Full Featured Setup
@@ -160,37 +160,44 @@ set -g @plugin 'recca0120/tmux-ccusage'
 set -g @ccusage_subscription_amount '200'
 set -g @ccusage_warning_threshold '70'
 set -g @ccusage_critical_threshold '90'
-set -g status-right 'Claude: #{ccusage_status} | %H:%M'
+set -g status-right 'Claude: #(@ccusage_status) | %H:%M'
 ```
 
 ### Custom Format
 
 ```tmux
 set -g @ccusage_custom_format 'Today: #{today} (Total: #{total})'
-set -g status-right '#{ccusage_custom} | %H:%M'
+set -g status-right '#(@ccusage_custom) | %H:%M'
+```
+
+### Dracula Theme Integration
+
+```tmux
+# Source the Dracula theme configuration
+source-file ~/.tmux/plugins/tmux-ccusage/dracula-theme.conf
 ```
 
 ## Development
 
 ### Running Tests
 
-The project uses TDD with comprehensive test coverage using both custom test framework and Bats:
+The project uses Bats (Bash Automated Testing System) for comprehensive test coverage:
 
 ```bash
-# Run all tests (original framework)
-./test/test_runner.sh
+# Run all tests
+./test/run_tests.sh
 
-# Run Bats tests
-./test/run_bats_tests.sh
-
-# Run all Bats tests manually
-bats test/bats/*.bats
+# Run tests manually with Bats
+bats test/*.bats
 
 # Run with TAP output
-bats test/bats/*.bats --formatter tap
+bats test/*.bats --formatter tap
 
 # Run specific test file
-bats test/bats/test_json_parser.bats
+bats test/json_parser.bats
+
+# Run tmux integration tests
+./test/tmux_integration.sh
 ```
 
 #### Installing Bats
@@ -216,9 +223,14 @@ tmux-ccusage/
 │   ├── json_parser.sh   # JSON parsing functions
 │   ├── cache.sh         # Cache management
 │   └── formatter.sh     # Display formatters
-└── test/
-    ├── test_*.sh        # Test files
-    └── test_runner.sh   # Test runner
+├── test/
+│   ├── *.bats           # Bats test files
+│   ├── test_helper.bash # Test helper functions
+│   ├── run_tests.sh     # Test runner
+│   └── tmux_integration.sh # Tmux integration tests
+├── dracula-theme.conf   # Dracula theme configuration
+└── examples/
+    └── dracula-integration.md # Dracula theme examples
 ```
 
 ## Troubleshooting
