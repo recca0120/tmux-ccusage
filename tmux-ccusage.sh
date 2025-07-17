@@ -3,6 +3,18 @@
 # tmux-ccusage - Display Claude usage in tmux status bar
 # Main entry point script
 
+# Ensure common binary locations are in PATH
+# This helps when tmux runs commands in a restricted environment
+export PATH="$HOME/.local/bin:$PATH:/usr/local/bin:/usr/bin:/bin"
+
+# Debug logging (only in test mode)
+if [ -n "$TMUX_TEST_MODE" ] && [ -n "$DEBUG_TMUX_CCUSAGE" ]; then
+    echo "[DEBUG] PATH: $PATH" >&2
+    echo "[DEBUG] Script: $0" >&2
+    echo "[DEBUG] Args: $*" >&2
+    echo "[DEBUG] ccusage: $(which ccusage 2>/dev/null || echo 'not found')" >&2
+fi
+
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
