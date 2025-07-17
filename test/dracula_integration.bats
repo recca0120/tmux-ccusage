@@ -61,7 +61,7 @@ EOF
     
     run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
     [ "$status" -eq 0 ]
-    [ "$output" = "$0.00" ]
+    [ "$output" = "\$0.00" ]
 }
 
 @test "dracula-ccusage.sh supports custom display format" {

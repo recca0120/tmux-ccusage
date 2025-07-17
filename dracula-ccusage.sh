@@ -10,7 +10,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 get_tmux_option() {
     local option=$1
     local default_value=$2
-    local option_value=$(tmux show-option -gqv "$option")
+    
+    # In test mode, use environment variables instead of tmux
+    if [ -n "${TMUX_TEST_MODE:-}" ]; then
+        local var_name="TMUX_OPT_${option//@/_}"
+        var_name="${var_name//-/_}"
+        eval "local option_value=\${${var_name}:-}"
+        if [ -z "$option_value" ]; then
+            echo "$default_value"
+        else
+            echo "$option_value"
+        fi
+        return
+    fi
+    
+    local option_value=$(tmux show-option -gqv "$option" 2>/dev/null)
     
     if [ -z "$option_value" ]; then
         echo "$default_value"
@@ -35,6 +49,6 @@ else
     if [ -x "$CCUSAGE_PATH" ]; then
         "$CCUSAGE_PATH" "$display_format"
     else
-        echo "$0.00"
+        echo "\$0.00"
     fi
 fi
