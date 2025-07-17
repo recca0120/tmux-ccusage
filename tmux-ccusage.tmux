@@ -2,24 +2,38 @@
 
 # tmux-ccusage TPM plugin file
 
-CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# This file should be run as a script when using TPM
+# or sourced directly when testing
 
-# Set default format strings
-tmux set-option -g @ccusage_daily_today "#($CURRENT_DIR/tmux-ccusage.sh daily_today)"
-tmux set-option -g @ccusage_daily_total "#($CURRENT_DIR/tmux-ccusage.sh daily_total)"
-tmux set-option -g @ccusage_both "#($CURRENT_DIR/tmux-ccusage.sh both)"
-tmux set-option -g @ccusage_monthly_current "#($CURRENT_DIR/tmux-ccusage.sh monthly_current)"
-tmux set-option -g @ccusage_remaining "#($CURRENT_DIR/tmux-ccusage.sh remaining)"
-tmux set-option -g @ccusage_percentage "#($CURRENT_DIR/tmux-ccusage.sh percentage)"
-tmux set-option -g @ccusage_status "#($CURRENT_DIR/tmux-ccusage.sh status)"
-tmux set-option -g @ccusage_custom "#($CURRENT_DIR/tmux-ccusage.sh custom)"
+# Determine the directory containing this script
+if [ -n "${BASH_SOURCE[0]}" ]; then
+    CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+elif [ -n "$0" ] && [ "$0" != "bash" ] && [ "$0" != "sh" ]; then
+    CURRENT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+else
+    # Fallback: assume we're in the plugin directory
+    CURRENT_DIR="$( pwd )"
+fi
+
+# Function to set tmux options
+set_tmux_option() {
+    local option=$1
+    local value=$2
+    tmux set-option -gq "$option" "$value"
+}
+
+# Set default format strings as user options
+# These store the commands that can be used in status-line
+set_tmux_option "@ccusage_daily_today" "#($CURRENT_DIR/tmux-ccusage.sh daily_today)"
+set_tmux_option "@ccusage_daily_total" "#($CURRENT_DIR/tmux-ccusage.sh daily_total)"
+set_tmux_option "@ccusage_both" "#($CURRENT_DIR/tmux-ccusage.sh both)"
+set_tmux_option "@ccusage_monthly_current" "#($CURRENT_DIR/tmux-ccusage.sh monthly_current)"
+set_tmux_option "@ccusage_remaining" "#($CURRENT_DIR/tmux-ccusage.sh remaining)"
+set_tmux_option "@ccusage_percentage" "#($CURRENT_DIR/tmux-ccusage.sh percentage)"
+set_tmux_option "@ccusage_status" "#($CURRENT_DIR/tmux-ccusage.sh status)"
+set_tmux_option "@ccusage_custom" "#($CURRENT_DIR/tmux-ccusage.sh custom)"
 
 # Convenience aliases
-tmux set-option -g @ccusage_today "#($CURRENT_DIR/tmux-ccusage.sh daily_today)"
-tmux set-option -g @ccusage_total "#($CURRENT_DIR/tmux-ccusage.sh daily_total)"
-tmux set-option -g @ccusage_monthly "#($CURRENT_DIR/tmux-ccusage.sh monthly_current)"
-
-# Set format strings that can be used in status-right/status-left
-for format in daily_today daily_total both monthly_current remaining percentage status custom today total monthly; do
-    tmux set-option -g "#{ccusage_${format}}" "#($CURRENT_DIR/tmux-ccusage.sh ${format})"
-done
+set_tmux_option "@ccusage_today" "#($CURRENT_DIR/tmux-ccusage.sh daily_today)"
+set_tmux_option "@ccusage_total" "#($CURRENT_DIR/tmux-ccusage.sh daily_total)"
+set_tmux_option "@ccusage_monthly" "#($CURRENT_DIR/tmux-ccusage.sh monthly_current)"
