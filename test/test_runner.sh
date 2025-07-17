@@ -12,6 +12,24 @@ TESTS_RUN=0
 TESTS_PASSED=0
 TESTS_FAILED=0
 
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+# Disable colors in CI or if NO_COLOR is set
+if [ -n "${CI:-}" ] || [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    BOLD=''
+    NC=''
+fi
+
 # Enable debug mode if CI environment
 if [ -n "${CI:-}" ]; then
     set -x
@@ -27,17 +45,17 @@ assert_equals() {
     
     if [ "$expected" = "$actual" ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo "✓ $message"
+        echo -e "${GREEN}✓${NC} $message"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo "✗ $message"
-        echo "  Expected: '$expected'"
-        echo "  Actual:   '$actual'"
+        echo -e "${RED}✗${NC} $message"
+        echo -e "  ${YELLOW}Expected:${NC} '$expected'"
+        echo -e "  ${YELLOW}Actual:${NC}   '$actual'"
     fi
 }
 
 # Run first test - JSON parser doesn't exist yet
-echo "=== Testing JSON Parser ==="
+echo -e "\n${BOLD}${BLUE}=== Testing JSON Parser ===${NC}"
 if [ ! -f "scripts/json_parser.sh" ]; then
     echo "✗ json_parser.sh not yet implemented (expected in TDD)"
     TESTS_RUN=1
@@ -69,7 +87,7 @@ fi
 
 # Test cache functionality
 echo
-echo "=== Testing Cache ==="
+echo -e "\n${BOLD}${BLUE}=== Testing Cache ===${NC}"
 if [ ! -f "scripts/cache.sh" ]; then
     echo "✗ cache.sh not yet implemented (expected in TDD)"
     TESTS_RUN=$((TESTS_RUN + 1))
@@ -87,7 +105,7 @@ fi
 
 # Test formatter functionality
 echo
-echo "=== Testing Formatter ==="
+echo -e "\n${BOLD}${BLUE}=== Testing Formatter ===${NC}"
 if [ ! -f "scripts/formatter.sh" ]; then
     echo "✗ formatter.sh not yet implemented (expected in TDD)"
     TESTS_RUN=$((TESTS_RUN + 1))
@@ -105,7 +123,7 @@ fi
 
 # Integration tests
 echo
-echo "=== Testing Integration ==="
+echo -e "\n${BOLD}${BLUE}=== Testing Integration ===${NC}"
 if [ -f "tmux-ccusage.sh" ]; then
     PROJECT_DIR="$(pwd)"
     source test/test_integration.sh
@@ -117,9 +135,21 @@ fi
 
 # Summary
 echo
-echo "=== Test Summary ==="
-echo "Tests run: $TESTS_RUN"
-echo "Passed: $TESTS_PASSED"
-echo "Failed: $TESTS_FAILED"
+echo -e "\n${BOLD}${BLUE}=== Test Summary ===${NC}"
+echo -e "${BOLD}Tests run:${NC} $TESTS_RUN"
+echo -e "${GREEN}${BOLD}Passed:${NC} $TESTS_PASSED"
+if [ $TESTS_FAILED -gt 0 ]; then
+    echo -e "${RED}${BOLD}Failed:${NC} $TESTS_FAILED"
+else
+    echo -e "${BOLD}Failed:${NC} $TESTS_FAILED"
+fi
+
+# Final status
+echo ""
+if [ $TESTS_FAILED -eq 0 ]; then
+    echo -e "${GREEN}${BOLD}✓ All tests passed!${NC}"
+else
+    echo -e "${RED}${BOLD}✗ $TESTS_FAILED test(s) failed!${NC}"
+fi
 
 exit $TESTS_FAILED
