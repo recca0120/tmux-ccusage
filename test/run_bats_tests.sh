@@ -81,22 +81,9 @@ if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then
     bats test/bats/*.bats $FORMATTER
     BATS_EXIT_CODE=$?
 else
-    # In local environment, filter out annoying errors
-    # Create a temporary file to store the exit code
-    TMPFILE=$(mktemp)
-    
-    # Run bats and filter errors more aggressively
-    exec 3>&1 4>&2
-    exec 1> >(grep -v "tput: No value" | grep -v "printf: write error: Broken pipe" >&3)
-    exec 2> >(grep -v "tput: No value" | grep -v "printf: write error: Broken pipe" >&4)
-    
-    bats test/bats/*.bats $FORMATTER
+    # In local environment, use wrapper to filter errors
+    "$SCRIPT_DIR/bats-wrapper.sh" test/bats/*.bats $FORMATTER
     BATS_EXIT_CODE=$?
-    
-    exec 1>&3 2>&4
-    exec 3>&- 4>&-
-    
-    rm -f "$TMPFILE"
 fi
 
 echo ""
