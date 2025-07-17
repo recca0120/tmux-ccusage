@@ -85,17 +85,11 @@ jobs:
         chmod +x $HOME/.local/bin/ccusage
         echo "$HOME/.local/bin" >> $GITHUB_PATH
     
-    - name: Run original tests
+    - name: Run tests
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         export TMUX_TEST_MODE=1
-        ./test/test_runner.sh
-    
-    - name: Run Bats tests
-      run: |
-        export PATH="$HOME/.local/bin:$PATH"
-        export TMUX_TEST_MODE=1
-        ./test/run_bats_tests.sh
+        ./test/run_tests.sh
     
     - name: Comprehensive tmux integration tests
       run: |
