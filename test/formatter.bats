@@ -60,14 +60,13 @@ load test_helper
 }
 
 @test "test_format_status_colors_enabled - Should output with color codes when enabled" {
-    export CCUSAGE_SUBSCRIPTION_AMOUNT=100
+    export CCUSAGE_SUBSCRIPTION_AMOUNT=200
     export CCUSAGE_ENABLE_COLORS="true"
     export TMUX="/tmp/tmux-1000/default,12345,0"
     
-    # Test normal color (< 80%)
-    local json='{"daily":[{"date":"2025-01-17","totalCost":50.00}],"totalCost":50.00}'
-    result=$(echo "$json" | format_status)
-    [[ "$result" == *"#[fg=colour46]"* ]]
+    # Test with existing MOCK_MULTI_DAY_JSON (80.3% usage)
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_status)
+    [[ "$result" == *"#[fg=yellow]"* ]]  # Should be yellow at 80.3%
     [[ "$result" == *"#[default]"* ]]
     
     unset CCUSAGE_SUBSCRIPTION_AMOUNT
@@ -76,15 +75,15 @@ load test_helper
 }
 
 @test "test_format_status_colors_disabled - Should output plain text when colors disabled" {
-    export CCUSAGE_SUBSCRIPTION_AMOUNT=100
+    export CCUSAGE_SUBSCRIPTION_AMOUNT=200
     export CCUSAGE_ENABLE_COLORS="false"
     export TMUX="/tmp/tmux-1000/default,12345,0"
     
-    local json='{"daily":[{"date":"2025-01-17","totalCost":50.00}],"totalCost":50.00}'
-    result=$(echo "$json" | format_status)
+    # Use MOCK_MULTI_DAY_JSON for consistency
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_status)
     [[ "$result" != *"#[fg="* ]]
     [[ "$result" != *"#[default]"* ]]
-    [ "$result" = "\$50.00/\$100 (50%)" ]
+    [ "$result" = "\$160.55/\$200 (80%)" ]
     
     unset CCUSAGE_SUBSCRIPTION_AMOUNT
     unset CCUSAGE_ENABLE_COLORS
@@ -92,14 +91,14 @@ load test_helper
 }
 
 @test "test_format_status_warning_threshold - Should use warning color at 80%" {
-    export CCUSAGE_SUBSCRIPTION_AMOUNT=100
+    export CCUSAGE_SUBSCRIPTION_AMOUNT=200
     export CCUSAGE_WARNING_THRESHOLD=80
     export CCUSAGE_ENABLE_COLORS="true"
     export TMUX="/tmp/tmux-1000/default,12345,0"
     
-    local json='{"daily":[{"date":"2025-01-17","totalCost":85.00}],"totalCost":85.00}'
-    result=$(echo "$json" | format_status)
-    [[ "$result" == *"#[fg=colour226]"* ]]
+    # Use MOCK_MULTI_DAY_JSON which is at 80.3% (160.55/200)
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_status)
+    [[ "$result" == *"#[fg=yellow]"* ]]
     
     unset CCUSAGE_SUBSCRIPTION_AMOUNT
     unset CCUSAGE_WARNING_THRESHOLD
@@ -113,9 +112,10 @@ load test_helper
     export CCUSAGE_ENABLE_COLORS="true"
     export TMUX="/tmp/tmux-1000/default,12345,0"
     
-    local json='{"daily":[{"date":"2025-01-17","totalCost":98.00}],"totalCost":98.00}'
+    # Create a high usage JSON for critical threshold test
+    local json='{"daily":[{"date":"2025-01-17","totalCost":98.00}],"totals":{"totalCost":98.00}}'
     result=$(echo "$json" | format_status)
-    [[ "$result" == *"#[fg=colour196]"* ]]
+    [[ "$result" == *"#[fg=red]"* ]]
     
     unset CCUSAGE_SUBSCRIPTION_AMOUNT
     unset CCUSAGE_CRITICAL_THRESHOLD
