@@ -90,10 +90,10 @@ test_format_status_normal() {
     local test_json='{"totals":{"totalCost":100}}'
     local result=$(echo "$test_json" | format_status)
     # Check if result contains the cost (color codes might vary)
-    if [[ "$result" == *"$100.00"* ]]; then
+    if [[ "$result" == *"\$100.00"* ]]; then
         assert_equals "contains" "contains" "Should contain cost in normal status"
     else
-        assert_equals "contains $100.00" "$result" "Should contain cost in normal status"
+        assert_equals "contains \$100.00" "$result" "Should contain cost in normal status"
     fi
     
     unset CCUSAGE_SUBSCRIPTION_AMOUNT
