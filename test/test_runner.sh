@@ -7,6 +7,11 @@ set +e
 
 cd "$(dirname "$0")/.."
 
+# Set TERM if not set to avoid tput errors
+if [ -z "${TERM:-}" ]; then
+    export TERM=dumb
+fi
+
 # Test counters
 TESTS_RUN=0
 TESTS_PASSED=0

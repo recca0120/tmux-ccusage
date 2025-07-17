@@ -50,6 +50,11 @@ echo -e "${BOLD}${BLUE}====================${NC}"
 
 cd "$PROJECT_DIR"
 
+# Set TERM if not set to avoid tput errors
+if [ -z "${TERM:-}" ]; then
+    export TERM=dumb
+fi
+
 # Choose formatter based on environment
 if [ -n "${GITHUB_ACTIONS:-}" ]; then
     # Use pretty formatter for GitHub Actions
@@ -59,12 +64,14 @@ else
     FORMATTER="--tap"
 fi
 
-# Run tests and capture results
-if bats test/bats/*.bats $FORMATTER; then
-    echo ""
+# Run tests and capture exit status properly
+bats test/bats/*.bats $FORMATTER
+BATS_EXIT_CODE=$?
+
+echo ""
+if [ $BATS_EXIT_CODE -eq 0 ]; then
     echo -e "${GREEN}${BOLD}✓ All tests passed!${NC}"
 else
-    echo ""
     echo -e "${RED}${BOLD}✗ Some tests failed!${NC}"
-    exit 1
+    exit $BATS_EXIT_CODE
 fi
