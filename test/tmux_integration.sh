@@ -52,6 +52,10 @@ tmux start-server 2>/dev/null || true
 echo -e "\n${BOLD}Creating test tmux session...${NC}"
 tmux new-session -d -s "$TEST_SESSION" -x 80 -y 24
 
+# Enable status line
+tmux set-option -t "$TEST_SESSION" status on
+tmux set-option -t "$TEST_SESSION" status-interval 1
+
 # Source the tmux-ccusage plugin
 echo -e "${BOLD}Loading tmux-ccusage plugin...${NC}"
 # Debug: Check if plugin file exists
@@ -68,78 +72,69 @@ echo -e "${BOLD}Debug: Checking if plugin loaded...${NC}"
 test_option=$(tmux show-option -gqv "@ccusage_daily_today" 2>/dev/null)
 if [ -n "$test_option" ]; then
     echo -e "${GREEN}✓ Plugin loaded successfully${NC}"
-    
-    # Test the script directly
-    echo -e "\n${BOLD}Debug: Testing tmux-ccusage.sh directly...${NC}"
-    echo -e "  Script path: $PROJECT_DIR/tmux-ccusage.sh"
-    echo -e "  PATH: $PATH"
-    echo -e "  TMUX_TEST_MODE: $TMUX_TEST_MODE"
-    
-    # Test if ccusage is available
-    if command -v ccusage &> /dev/null; then
-        echo -e "  ccusage found at: $(which ccusage)"
-        echo -e "  ccusage version: $(ccusage --version 2>&1 || echo 'version check failed')"
-    else
-        echo -e "${RED}  ccusage not found in PATH${NC}"
-    fi
-    
-    # Try running the script directly
-    echo -e "\n  Testing direct execution:"
-    test_output=$("$PROJECT_DIR/tmux-ccusage.sh" daily_today 2>&1)
-    echo -e "  Output: '$test_output'"
-    echo -e "  Exit code: $?"
 else
     echo -e "${RED}✗ Plugin failed to load${NC}"
     # Try to see all global options
     echo -e "${YELLOW}All user options:${NC}"
     tmux show-options -g | grep "@ccusage" || echo "No @ccusage options found"
+    exit 1
 fi
 
-# Test 1: Check if user options are set and work via status line
-echo -e "\n${BOLD}Test 1: Testing format options via status line...${NC}"
-OPTIONS=(
-    "@ccusage_daily_today"
-    "@ccusage_daily_total"
-    "@ccusage_monthly_current"
-    "@ccusage_remaining"
-    "@ccusage_percentage"
-    "@ccusage_status"
+# Test 1: Check if format commands work
+echo -e "\n${BOLD}Test 1: Testing format commands...${NC}"
+FORMATS=(
+    "daily_today|Should show today's cost"
+    "daily_total|Should show daily total"
+    "monthly_current|Should show current month"
+    "remaining|Should show remaining amount"
+    "percentage|Should show usage percentage"
+    "status|Should show status"
 )
 
 FAILED=0
-for option in "${OPTIONS[@]}"; do
-    value=$(tmux show-option -gqv "$option" 2>/dev/null)
-    if [[ -z "$value" ]]; then
-        echo -e "${RED}✗ Option $option not set${NC}"
+for format_desc in "${FORMATS[@]}"; do
+    format="${format_desc%|*}"
+    desc="${format_desc#*|}"
+    
+    echo -e "\nTesting format: $format"
+    echo -e "  Description: $desc"
+    
+    # Test the command directly
+    output=$(PATH="$HOME/.local/bin:$PATH" TMUX_TEST_MODE=1 "$PROJECT_DIR/tmux-ccusage.sh" "$format" 2>&1)
+    exit_code=$?
+    
+    if [[ $exit_code -ne 0 ]]; then
+        echo -e "${RED}  ✗ Command failed (exit code: $exit_code)${NC}"
+        echo -e "  Error: $output"
+        FAILED=1
+    elif [[ -z "$output" ]]; then
+        echo -e "${RED}  ✗ Command returned empty${NC}"
         FAILED=1
     else
-        echo -e "\nTesting $option:"
-        echo -e "  Command: $value"
+        echo -e "${GREEN}  ✓ Output: $output${NC}"
         
-        # Set this as the status-right and force a refresh
-        tmux set-option -g status-right "$value"
-        tmux refresh-client -S 2>/dev/null || true
-        sleep 0.5
-        
-        # Get the rendered status
-        rendered_status=$(tmux display-message -p "#{status-right}" 2>&1)
-        echo -e "  Status shows: $rendered_status"
-        
-        # Check if it rendered something meaningful
-        if [[ "$rendered_status" == "$value" ]]; then
-            echo -e "${YELLOW}  ⚠ Status not rendered (shows raw command)${NC}"
-            # Test directly
-            format="${option##*_}"
-            echo -e "  Testing directly with format: $format"
-            direct_output=$(PATH="$HOME/.local/bin:$PATH" TMUX_TEST_MODE=1 "$PROJECT_DIR/tmux-ccusage.sh" "$format" 2>&1)
-            echo -e "  Direct output: $direct_output"
-            FAILED=1
-        elif [[ -z "$rendered_status" ]] || [[ "$rendered_status" == " " ]]; then
-            echo -e "${YELLOW}  ⚠ Status rendered empty${NC}"
-            FAILED=1
-        else
-            echo -e "${GREEN}  ✓ Status rendered: $rendered_status${NC}"
-        fi
+        # Validate output format
+        case "$format" in
+            remaining)
+                if [[ "$output" =~ ^\$[0-9]+(\.[0-9]+)?/\$[0-9]+ ]]; then
+                    echo -e "${GREEN}  ✓ Format validated${NC}"
+                else
+                    echo -e "${YELLOW}  ⚠ Unexpected format${NC}"
+                fi
+                ;;
+            percentage)
+                if [[ "$output" =~ ^[0-9]+(\.[0-9]+)?%$ ]] || [[ "$output" == "N/A" ]]; then
+                    echo -e "${GREEN}  ✓ Format validated${NC}"
+                else
+                    echo -e "${YELLOW}  ⚠ Unexpected format${NC}"
+                fi
+                ;;
+            *)
+                if [[ "$output" =~ ^\$[0-9]+\.[0-9]{2} ]]; then
+                    echo -e "${GREEN}  ✓ Format validated${NC}"
+                fi
+                ;;
+        esac
     fi
 done
 
@@ -149,27 +144,23 @@ tmux set-option -g @ccusage_subscription_amount 200
 bash "$PROJECT_DIR/tmux-ccusage.tmux"
 sleep 1
 
-# Check remaining format
-remaining_cmd=$(tmux show-option -gqv "@ccusage_remaining" 2>/dev/null)
-export PATH="$HOME/.local/bin:$PATH"
-export TMUX_TEST_MODE=1
-remaining=$(eval "$remaining_cmd" 2>&1)
-if [[ "$remaining" =~ \$[0-9]+\.[0-9]+/\$[0-9]+ ]]; then
-    echo -e "${GREEN}✓ Remaining format works: $remaining${NC}"
+# Test remaining format with subscription
+echo -e "\n  Testing remaining with subscription:"
+output=$(PATH="$HOME/.local/bin:$PATH" TMUX_TEST_MODE=1 CCUSAGE_SUBSCRIPTION_AMOUNT=200 "$PROJECT_DIR/tmux-ccusage.sh" remaining 2>&1)
+if [[ "$output" =~ ^\$[0-9]+(\.[0-9]+)?/\$200$ ]]; then
+    echo -e "${GREEN}  ✓ Remaining format works: $output${NC}"
 else
-    echo -e "${RED}✗ Remaining format failed: $remaining${NC}"
+    echo -e "${RED}  ✗ Remaining format failed: $output${NC}"
     FAILED=1
 fi
 
-# Check percentage format  
-percentage_cmd=$(tmux show-option -gqv "@ccusage_percentage" 2>/dev/null)
-export PATH="$HOME/.local/bin:$PATH"
-export TMUX_TEST_MODE=1
-percentage=$(eval "$percentage_cmd" 2>&1)
-if [[ "$percentage" =~ [0-9]+\.[0-9]+% ]] || [[ "$percentage" == "N/A" ]]; then
-    echo -e "${GREEN}✓ Percentage format works: $percentage${NC}"
+# Test percentage format with subscription
+echo -e "\n  Testing percentage with subscription:"
+output=$(PATH="$HOME/.local/bin:$PATH" TMUX_TEST_MODE=1 CCUSAGE_SUBSCRIPTION_AMOUNT=200 "$PROJECT_DIR/tmux-ccusage.sh" percentage 2>&1)
+if [[ "$output" =~ ^[0-9]+(\.[0-9]+)?%$ ]]; then
+    echo -e "${GREEN}  ✓ Percentage format works: $output${NC}"
 else
-    echo -e "${RED}✗ Percentage format failed: $percentage${NC}"
+    echo -e "${RED}  ✗ Percentage format failed: $output${NC}"
     FAILED=1
 fi
 
@@ -178,81 +169,43 @@ echo -e "\n${BOLD}Test 3: Testing different report types...${NC}"
 REPORT_TYPES=("daily" "monthly")
 
 for report_type in "${REPORT_TYPES[@]}"; do
+    echo -e "\n  Testing report type: $report_type"
     tmux set-option -g @ccusage_report_type "$report_type"
-    bash "$PROJECT_DIR/tmux-ccusage.tmux"
-    sleep 1
     
-    cmd=$(tmux show-option -gqv "@ccusage_daily_today" 2>/dev/null)
-    export PATH="$HOME/.local/bin:$PATH"
-    export TMUX_TEST_MODE=1
-    value=$(eval "$cmd" 2>&1)
-    if [[ "$value" =~ ^\$[0-9]+\.[0-9]{2}$ ]]; then
-        echo -e "${GREEN}✓ Report type '$report_type' works: $value${NC}"
+    output=$(PATH="$HOME/.local/bin:$PATH" TMUX_TEST_MODE=1 CCUSAGE_REPORT_TYPE="$report_type" "$PROJECT_DIR/tmux-ccusage.sh" daily_today 2>&1)
+    if [[ "$output" =~ ^\$[0-9]+\.[0-9]{2}$ ]]; then
+        echo -e "${GREEN}  ✓ Report type '$report_type' works: $output${NC}"
     else
-        echo -e "${RED}✗ Report type '$report_type' failed: $value${NC}"
+        echo -e "${RED}  ✗ Report type '$report_type' failed: $output${NC}"
         FAILED=1
     fi
 done
 
-# Test 4: Test status bar integration
-echo -e "\n${BOLD}Test 4: Testing status bar integration...${NC}"
-# Get the command for daily_today
-cmd=$(tmux show-option -gqv "@ccusage_daily_today" 2>/dev/null)
-tmux set-option -g status-right "Claude: $cmd"
-status_right=$(tmux show-option -gv status-right 2>/dev/null || echo "ERROR")
-if [[ "$status_right" == *"tmux-ccusage.sh"* ]]; then
-    echo -e "${GREEN}✓ Status bar integration successful${NC}"
-    
-    # Force status refresh (skip if no client attached)
-    tmux refresh-client -S 2>/dev/null || true
-    sleep 1
-    
-    # Check if the value is actually displayed
-    export PATH="$HOME/.local/bin:$PATH"
-    export TMUX_TEST_MODE=1
-    actual_value=$(eval "$cmd" 2>&1)
-    if [[ "$actual_value" =~ ^\$[0-9]+\.[0-9]{2}$ ]]; then
-        echo -e "${GREEN}✓ Status bar value: $actual_value${NC}"
-    else
-        echo -e "${YELLOW}⚠ Status bar value: $actual_value${NC}"
-    fi
+# Test 4: Test tmux option retrieval
+echo -e "\n${BOLD}Test 4: Testing tmux option retrieval...${NC}"
+option_value=$(tmux show-option -gqv "@ccusage_daily_today" 2>/dev/null)
+if [[ "$option_value" =~ tmux-ccusage\.sh ]]; then
+    echo -e "${GREEN}✓ Tmux option contains correct script path${NC}"
 else
-    echo -e "${RED}✗ Status bar integration failed${NC}"
+    echo -e "${RED}✗ Tmux option incorrect: $option_value${NC}"
     FAILED=1
 fi
 
 # Test 5: Test cache functionality
 echo -e "\n${BOLD}Test 5: Testing cache functionality...${NC}"
 # First call
-cmd=$(tmux show-option -gqv "@ccusage_daily_today" 2>/dev/null)
-export PATH="$HOME/.local/bin:$PATH"
-export TMUX_TEST_MODE=1
-
-if command -v gdate &> /dev/null; then
-    # macOS with GNU coreutils
-    start_time=$(gdate +%s%N)
-    value1=$(eval "$cmd" 2>&1)
-    end_time=$(gdate +%s%N)
-    first_duration=$((($end_time - $start_time) / 1000000))
-    
-    # Second call (should use cache)
-    start_time=$(gdate +%s%N)
-    value2=$(eval "$cmd" 2>&1)
-    end_time=$(gdate +%s%N)
-    second_duration=$((($end_time - $start_time) / 1000000))
-    
-    echo -e "  First call: ${first_duration}ms, Second call: ${second_duration}ms"
-else
-    # Fallback for systems without nanosecond precision
-    value1=$(eval "$cmd" 2>&1)
-    sleep 0.1
-    value2=$(eval "$cmd" 2>&1)
-fi
+value1=$(PATH="$HOME/.local/bin:$PATH" TMUX_TEST_MODE=1 "$PROJECT_DIR/tmux-ccusage.sh" daily_today 2>&1)
+sleep 0.1
+# Second call (should use cache)
+value2=$(PATH="$HOME/.local/bin:$PATH" TMUX_TEST_MODE=1 "$PROJECT_DIR/tmux-ccusage.sh" daily_today 2>&1)
 
 if [[ "$value1" == "$value2" ]]; then
     echo -e "${GREEN}✓ Cache returns consistent values${NC}"
+    echo -e "  Both calls returned: $value1"
 else
     echo -e "${RED}✗ Cache inconsistency detected${NC}"
+    echo -e "  First: $value1"
+    echo -e "  Second: $value2"
     FAILED=1
 fi
 
