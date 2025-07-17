@@ -82,7 +82,6 @@ teardown() {
 
 # Run all test files
 echo -e "${YELLOW}Running tmux-ccusage tests...${NC}"
-echo
 
 setup
 
@@ -91,7 +90,6 @@ for test_file in "$SCRIPT_DIR"/test_*.sh; do
     if [ -f "$test_file" ] && [ "$test_file" != "$SCRIPT_DIR/run_tests.sh" ]; then
         echo -e "${YELLOW}Running $(basename "$test_file")...${NC}"
         source "$test_file"
-        echo
     fi
 done
 

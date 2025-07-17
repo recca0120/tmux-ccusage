@@ -26,7 +26,7 @@ MOCK_JSON='{
 # Test get_today_cost function
 test_get_today_cost() {
     # Source the script (will be created)
-    source "$PROJECT_DIR/scripts/json_parser.sh" 2>/dev/null || {
+    source "$PROJECT_DIR/scripts/json_parser.sh" >/dev/null 2>&1 || {
         # Script doesn't exist yet - this is expected in TDD
         assert_equals "" "" "json_parser.sh not yet implemented"
         return
@@ -38,7 +38,7 @@ test_get_today_cost() {
 
 # Test get_total_cost function
 test_get_total_cost() {
-    source "$PROJECT_DIR/scripts/json_parser.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/json_parser.sh" >/dev/null 2>&1 || return
     
     local result=$(echo "$MOCK_JSON" | get_total_cost)
     assert_equals "160.55" "$result" "Should extract total cost (160.55)"
@@ -46,7 +46,7 @@ test_get_total_cost() {
 
 # Test get_cost_by_date function
 test_get_cost_by_date() {
-    source "$PROJECT_DIR/scripts/json_parser.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/json_parser.sh" >/dev/null 2>&1 || return
     
     local result=$(echo "$MOCK_JSON" | get_cost_by_date "2025-07-16")
     assert_equals "130.45" "$result" "Should extract cost for specific date"
@@ -54,7 +54,7 @@ test_get_cost_by_date() {
 
 # Test handling empty JSON
 test_empty_json() {
-    source "$PROJECT_DIR/scripts/json_parser.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/json_parser.sh" >/dev/null 2>&1 || return
     
     local result=$(echo '{}' | get_today_cost)
     assert_equals "0.00" "$result" "Should return 0.00 for empty JSON"
@@ -62,7 +62,7 @@ test_empty_json() {
 
 # Test handling invalid JSON
 test_invalid_json() {
-    source "$PROJECT_DIR/scripts/json_parser.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/json_parser.sh" >/dev/null 2>&1 || return
     
     local result=$(echo 'invalid json' | get_today_cost)
     assert_equals "0.00" "$result" "Should return 0.00 for invalid JSON"
@@ -82,7 +82,7 @@ test_monthly_json() {
         }
     }'
     
-    source "$PROJECT_DIR/scripts/json_parser.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/json_parser.sh" >/dev/null 2>&1 || return
     
     local result=$(echo "$monthly_json" | get_current_month_cost)
     assert_equals "450.25" "$result" "Should extract current month cost"
