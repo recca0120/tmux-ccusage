@@ -44,7 +44,7 @@ test_env_vars() {
     # Test subscription amount with TMUX_TEST_MODE  
     # Use env -i to ensure completely clean environment, then set only what we need
     local result
-    result=$(env -i HOME="$HOME" PATH="$PATH" bash -c "cd '$PROJECT_DIR' && TMUX_TEST_MODE=1 CCUSAGE_SUBSCRIPTION_AMOUNT=500 ./tmux-ccusage.sh percentage" 2>/dev/null)
+    result=$(env -i HOME="$HOME" PATH="$PATH" bash -c "cd '$PROJECT_DIR' && TMUX_TEST_MODE=1 CCUSAGE_SUBSCRIPTION_AMOUNT=500 ./tmux-ccusage.sh percentage" >/dev/null 2>&1)
     if [[ "$result" =~ ^[0-9]+\.[0-9]+%$ ]] || [[ "$result" == "N/A" ]]; then
         assert_equals "matches" "matches" "Percentage format should work with env var"
     else

@@ -11,7 +11,7 @@ MOCK_JSON='{"daily":[{"date":"2025-07-17","totalCost":17.96}],"totals":{"totalCo
 
 # Test cache write
 test_cache_write() {
-    source "$PROJECT_DIR/scripts/cache.sh" 2>/dev/null || {
+    source "$PROJECT_DIR/scripts/cache.sh" >/dev/null 2>&1 || {
         assert_equals "" "" "cache.sh not yet implemented"
         return
     }
@@ -38,7 +38,7 @@ test_cache_write() {
 
 # Test cache read
 test_cache_read() {
-    source "$PROJECT_DIR/scripts/cache.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/cache.sh" >/dev/null 2>&1 || return
     
     export CCUSAGE_CACHE_DIR="$TEST_CACHE_DIR"
     
@@ -54,10 +54,10 @@ test_cache_read() {
 
 # Test cache expiry (30 seconds)
 test_cache_expiry() {
-    source "$PROJECT_DIR/scripts/cache.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/cache.sh" >/dev/null 2>&1 || return
     
     export CCUSAGE_CACHE_DIR="$TEST_CACHE_DIR"
-    export CCUSAGE_CACHE_TTL=2  # 2 seconds for testing
+    export CCUSAGE_CACHE_TTL=1  # 1 second for testing
     
     # Write to cache
     local cache_file
@@ -68,8 +68,8 @@ test_cache_expiry() {
     is_cache_valid
     assert_equals "0" "$?" "Fresh cache should be valid"
     
-    # Wait for cache to expire
-    sleep 3
+    # Manually modify file timestamp to simulate expiry
+    touch -t 202001010000 "$cache_file"
     
     # Check if cache is invalid
     is_cache_valid
@@ -78,7 +78,7 @@ test_cache_expiry() {
 
 # Test cache with no file
 test_cache_no_file() {
-    source "$PROJECT_DIR/scripts/cache.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/cache.sh" >/dev/null 2>&1 || return
     
     export CCUSAGE_CACHE_DIR="$TEST_CACHE_DIR"
     
@@ -98,7 +98,7 @@ test_cache_no_file() {
 
 # Test get_cached_or_fetch
 test_get_cached_or_fetch() {
-    source "$PROJECT_DIR/scripts/cache.sh" 2>/dev/null || return
+    source "$PROJECT_DIR/scripts/cache.sh" >/dev/null 2>&1 || return
     
     export CCUSAGE_CACHE_DIR="$TEST_CACHE_DIR"
     export CCUSAGE_CACHE_TTL=30
@@ -135,7 +135,9 @@ test_get_cached_or_fetch() {
 echo "Testing cache functionality..."
 test_cache_write
 test_cache_read
+echo "Running cache expiry test..."
 test_cache_expiry
+echo "Cache expiry test completed"
 test_cache_no_file
 test_get_cached_or_fetch
 

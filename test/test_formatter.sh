@@ -4,10 +4,10 @@
 
 # Source required scripts once at the beginning
 if [ -f "$PROJECT_DIR/scripts/json_parser.sh" ]; then
-    source "$PROJECT_DIR/scripts/json_parser.sh"
+    source "$PROJECT_DIR/scripts/json_parser.sh" >/dev/null 2>&1
 fi
 if [ -f "$PROJECT_DIR/scripts/formatter.sh" ]; then
-    source "$PROJECT_DIR/scripts/formatter.sh"
+    source "$PROJECT_DIR/scripts/formatter.sh" >/dev/null 2>&1
 fi
 
 # Mock JSON data

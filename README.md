@@ -21,7 +21,7 @@ A tmux plugin to display Claude API usage information in your status bar.
 
 - tmux 2.1+
 - [ccusage](https://github.com/zckly/ccusage) CLI tool (`npm install -g ccusage`)
-- jq (for JSON parsing)
+- bc or awk (optional, for decimal arithmetic)
 
 ## Installation
 
@@ -226,9 +226,8 @@ tmux-ccusage/
 ### No output shown
 
 1. Check if ccusage is installed: `which ccusage`
-2. Check if jq is installed: `which jq`
-3. Check tmux version: `tmux -V` (requires 2.1+)
-4. Try running directly: `./tmux-ccusage.sh`
+2. Check tmux version: `tmux -V` (requires 2.1+)
+3. Try running directly: `./tmux-ccusage.sh`
 
 ### Cache issues
 

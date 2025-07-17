@@ -33,13 +33,13 @@ if ! command -v ccusage &> /dev/null; then
     exit 1
 fi
 
-# Check for jq
-if ! command -v jq &> /dev/null; then
-    echo "Error: jq is not installed"
-    echo "Please install jq:"
-    echo "  macOS: brew install jq"
-    echo "  Linux: sudo apt-get install jq"
-    exit 1
+# Check for bc or awk (for decimal arithmetic)
+if ! command -v bc &> /dev/null && ! command -v awk &> /dev/null; then
+    echo "Warning: Neither bc nor awk is installed"
+    echo "Installing bc is recommended for better decimal arithmetic:"
+    echo "  macOS: brew install bc"
+    echo "  Linux: sudo apt-get install bc"
+    echo "The plugin will use awk as fallback if available."
 fi
 
 # Create plugin directory
