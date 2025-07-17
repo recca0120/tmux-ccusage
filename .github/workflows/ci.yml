@@ -91,6 +91,18 @@ jobs:
         export TMUX_TEST_MODE=1
         ./test/run_tests.sh
     
+    - name: Run tmux integration tests
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        # Run tmux integration tests
+        ./test/tmux_integration.sh
+    
+    - name: Cleanup tmux sessions
+      if: always()
+      run: |
+        # Kill any remaining test sessions
+        tmux kill-server 2>/dev/null || true
+    
     - name: Install kcov (Ubuntu only)
       if: matrix.os == 'ubuntu-latest'
       run: |
