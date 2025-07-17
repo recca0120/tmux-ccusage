@@ -59,6 +59,70 @@ load test_helper
     [ "$result" = "\$0.00" ]
 }
 
+@test "test_format_status_colors_enabled - Should output with color codes when enabled" {
+    export CCUSAGE_SUBSCRIPTION_AMOUNT=100
+    export CCUSAGE_ENABLE_COLORS="true"
+    export TMUX="/tmp/tmux-1000/default,12345,0"
+    
+    # Test normal color (< 80%)
+    local json='{"daily":[{"date":"2025-01-17","totalCost":50.00}],"totalCost":50.00}'
+    result=$(echo "$json" | format_status)
+    [[ "$result" == *"#[fg=colour46]"* ]]
+    [[ "$result" == *"#[default]"* ]]
+    
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_ENABLE_COLORS
+    unset TMUX
+}
+
+@test "test_format_status_colors_disabled - Should output plain text when colors disabled" {
+    export CCUSAGE_SUBSCRIPTION_AMOUNT=100
+    export CCUSAGE_ENABLE_COLORS="false"
+    export TMUX="/tmp/tmux-1000/default,12345,0"
+    
+    local json='{"daily":[{"date":"2025-01-17","totalCost":50.00}],"totalCost":50.00}'
+    result=$(echo "$json" | format_status)
+    [[ "$result" != *"#[fg="* ]]
+    [[ "$result" != *"#[default]"* ]]
+    [ "$result" = "\$50.00/\$100 (50%)" ]
+    
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_ENABLE_COLORS
+    unset TMUX
+}
+
+@test "test_format_status_warning_threshold - Should use warning color at 80%" {
+    export CCUSAGE_SUBSCRIPTION_AMOUNT=100
+    export CCUSAGE_WARNING_THRESHOLD=80
+    export CCUSAGE_ENABLE_COLORS="true"
+    export TMUX="/tmp/tmux-1000/default,12345,0"
+    
+    local json='{"daily":[{"date":"2025-01-17","totalCost":85.00}],"totalCost":85.00}'
+    result=$(echo "$json" | format_status)
+    [[ "$result" == *"#[fg=colour226]"* ]]
+    
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_WARNING_THRESHOLD
+    unset CCUSAGE_ENABLE_COLORS
+    unset TMUX
+}
+
+@test "test_format_status_critical_threshold - Should use critical color at 95%" {
+    export CCUSAGE_SUBSCRIPTION_AMOUNT=100
+    export CCUSAGE_CRITICAL_THRESHOLD=95
+    export CCUSAGE_ENABLE_COLORS="true"
+    export TMUX="/tmp/tmux-1000/default,12345,0"
+    
+    local json='{"daily":[{"date":"2025-01-17","totalCost":98.00}],"totalCost":98.00}'
+    result=$(echo "$json" | format_status)
+    [[ "$result" == *"#[fg=colour196]"* ]]
+    
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_CRITICAL_THRESHOLD
+    unset CCUSAGE_ENABLE_COLORS
+    unset TMUX
+}
+
 @test "test_format_monthly - Should format monthly cost" {
     local monthly_json='{
         "monthly": [

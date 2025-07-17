@@ -106,7 +106,7 @@ set -g @ccusage_report_type 'daily'
 set -g @ccusage_subscription_amount '200'
 
 # Or use preset plans
-set -g @ccusage_subscription_plan 'pro'  # free, pro, team
+set -g @ccusage_subscription_plan 'pro'  # free ($0), pro ($20), team ($25)
 
 # Warning thresholds
 set -g @ccusage_warning_threshold '80'   # Yellow at 80%
@@ -114,6 +114,12 @@ set -g @ccusage_critical_threshold '95'  # Red at 95%
 
 # Cache settings
 set -g @ccusage_cache_ttl '30'          # Cache for 30 seconds
+
+# Color settings
+set -g @ccusage_enable_colors 'true'     # Enable/disable color output
+set -g @ccusage_color_normal 'colour46'  # Green
+set -g @ccusage_color_warning 'colour226' # Yellow
+set -g @ccusage_color_critical 'colour196' # Red
 ```
 
 ### Advanced Options
@@ -131,7 +137,7 @@ set -g @ccusage_order 'desc'             # desc or asc
 set -g @ccusage_breakdown 'true'         # Show per-model breakdown
 set -g @ccusage_offline 'true'           # Use cached pricing
 
-# Custom format
+# Custom format (supported placeholders: #{daily}, #{today}, #{total})
 set -g @ccusage_custom_format 'C: #{today}/#{total}'
 ```
 
@@ -172,10 +178,32 @@ set -g status-right '#(@ccusage_custom) | %H:%M'
 
 ### Dracula Theme Integration
 
+If you're using the [Dracula tmux theme](https://github.com/dracula/tmux), you can integrate tmux-ccusage as a custom plugin:
+
 ```tmux
-# Source the Dracula theme configuration
-source-file ~/.tmux/plugins/tmux-ccusage/dracula-theme.conf
+# Add to your .tmux.conf
+set -g @plugin 'dracula/tmux'
+set -g @plugin 'recca0120/tmux-ccusage'
+
+# Configure Dracula to show the custom plugin
+set -g @dracula-plugins "cpu-usage time custom:dracula-ccusage"
+
+# Set custom plugin colors
+set -g @dracula-custom-plugin-colors "green dark_gray"
+
+# Configure ccusage display format
+set -g @ccusage_custom_format "Today: #{daily} | Total: #{total}"
+set -g @dracula-ccusage-display "custom"
+
+# Enable powerline style
+set -g @dracula-show-powerline true
+set -g @dracula-show-left-sep 
+set -g @dracula-show-right-sep 
 ```
+
+Available colors for Dracula custom plugins:
+- `white`, `gray`, `dark_gray`, `light_purple`, `dark_purple`
+- `cyan`, `green`, `orange`, `red`, `pink`, `yellow`
 
 ## Development
 
@@ -219,18 +247,22 @@ npm install -g bats
 tmux-ccusage/
 ├── tmux-ccusage.sh      # Main entry point
 ├── tmux-ccusage.tmux    # TPM plugin file
+├── dracula-ccusage.sh   # Dracula theme integration wrapper
 ├── scripts/
 │   ├── json_parser.sh   # JSON parsing functions
 │   ├── cache.sh         # Cache management
 │   └── formatter.sh     # Display formatters
 ├── test/
-│   ├── *.bats           # Bats test files
+│   ├── cache.bats       # Cache functionality tests
+│   ├── formatter.bats   # Display formatter tests
+│   ├── json_parser.bats # JSON parsing tests
+│   ├── integration.bats # Main script integration tests
+│   ├── dracula_integration.bats # Dracula theme tests
 │   ├── test_helper.bash # Test helper functions
 │   ├── run_tests.sh     # Test runner
 │   └── tmux_integration.sh # Tmux integration tests
-├── dracula-theme.conf   # Dracula theme configuration
-└── examples/
-    └── dracula-integration.md # Dracula theme examples
+├── install.sh           # Installation script
+└── README.md            # This file
 ```
 
 ## Troubleshooting

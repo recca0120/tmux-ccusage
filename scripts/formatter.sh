@@ -119,8 +119,8 @@ format_status() {
         output="$output/\$$subscription (${percentage}%)"
     fi
     
-    # Return with color if in tmux
-    if [ -n "$TMUX" ]; then
+    # Apply colors if enabled
+    if [ "${CCUSAGE_ENABLE_COLORS:-true}" = "true" ] && [ -n "$TMUX" ]; then
         echo "${color}${output}#[default]"
     else
         echo "$output"
