@@ -1,1 +1,28 @@
 CLAUDE.md
+
+# Test output and temporary files
+test/tmp/
+test_output.txt
+*.log
+
+# Cache directories
+.cache/
+~/.cache/tmux-ccusage/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Node modules (if any)
+node_modules/
+
+# Coverage reports
+coverage/
+*.lcov
