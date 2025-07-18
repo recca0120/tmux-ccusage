@@ -189,8 +189,11 @@ set -g @plugin 'recca0120/tmux-ccusage'
 set -g @dracula-plugins "cpu-usage custom:ccusage time"
 
 # Optional: Configure display format
-# Options: status, daily_today, daily_total, monthly_current, monthly_total, remaining, percentage
+# Options: status, daily_today, daily_total, monthly_current, monthly_total, remaining, percentage, custom
 set -g @dracula-ccusage-display "status"
+
+# For custom format, define the format string (Claude prefix not auto-added)
+set -g @ccusage_custom_format 'Claude: #{today} (Total: #{total})'
 
 # Optional: Customize colors for ccusage
 # Available colors: white, gray, dark_gray, light_purple, dark_purple, cyan, green, orange, red, pink, yellow
@@ -216,6 +219,7 @@ When you install tmux-ccusage, it automatically detects if Dracula theme is inst
 | `remaining` | Remaining quota | `Claude $39.45/$200` |
 | `percentage` | Usage percentage | `Claude 80.3%` |
 | `status` | Full status with colors | `Claude $160.55/$200 (80.3%)` |
+| `custom` | User-defined format | User controls entire output |
 
 ## Development
 
