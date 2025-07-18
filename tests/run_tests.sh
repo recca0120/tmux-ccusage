@@ -47,7 +47,7 @@ cd "$PROJECT_DIR"
 
 # Run all test files
 FAILED=0
-for test_file in test/*.bats; do
+for test_file in tests/*.bats; do
     if [ -f "$test_file" ]; then
         echo -e "\n${BOLD}Running $(basename "$test_file")${NC}"
         if bats "$test_file"; then

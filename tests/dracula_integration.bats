@@ -130,15 +130,28 @@ EOF
 @test "dracula-ccusage.sh prepends 'Claude' to all format outputs" {
     # Test different format outputs
     formats=("daily_today" "monthly_current" "remaining" "percentage" "status")
-    outputs=("\$17.96" "\$450.25" "\$39.45/\$200" "80.3%" "\$160.55/\$200 (80.3%)")
+    outputs=('$17.96' '$450.25' '$39.45/$200' '80.3%' '$160.55/$200 (80.3%)')
     
     for i in "${!formats[@]}"; do
         export TMUX_OPT__dracula_ccusage_display="${formats[$i]}"
-        current_output="${outputs[$i]}"
+        expected_output="${outputs[$i]}"
         
         # Create a mock that outputs based on the format
-        # Write script with escaped output that respects CCUSAGE_PREFIX
-        printf '#!/usr/bin/env bash\nprefix="${CCUSAGE_PREFIX:-}"\necho "${prefix}%s"\n' "$current_output" > "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+        cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+# Mock tmux-ccusage.sh for testing
+prefix="${CCUSAGE_PREFIX:-}"
+
+# Map format to expected output
+case "$1" in
+    "daily_today") echo "${prefix}\$17.96" ;;
+    "monthly_current") echo "${prefix}\$450.25" ;;
+    "remaining") echo "${prefix}\$39.45/\$200" ;;
+    "percentage") echo "${prefix}80.3%" ;;
+    "status") echo "${prefix}\$160.55/\$200 (80.3%)" ;;
+    *) echo "${prefix}UNKNOWN" ;;
+esac
+EOF
         chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
         
         # Copy and modify dracula-ccusage.sh
@@ -147,7 +160,7 @@ EOF
         
         run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
         [ "$status" -eq 0 ]
-        [ "$output" = "Claude ${current_output}" ]
+        [ "$output" = "Claude ${expected_output}" ]
     done
 }
 
