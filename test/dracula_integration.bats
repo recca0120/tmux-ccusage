@@ -186,3 +186,174 @@ EOF
     [ "$status" -eq 0 ]
     [ "$output" = "\$0.00" ]  # No "Claude" prefix for custom format
 }
+
+# New tests for label customization feature
+
+@test "dracula-ccusage.sh supports custom prefix" {
+    # Test custom prefix feature
+    export TMUX_OPT__dracula_ccusage_prefix="AI "
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "\$100.00"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy and modify dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "AI \$100.00" ]
+}
+
+@test "dracula-ccusage.sh supports emoji prefix" {
+    # Test emoji prefix
+    export TMUX_OPT__dracula_ccusage_prefix="🤖 "
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "\$50.00"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy and modify dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "🤖 \$50.00" ]
+}
+
+@test "dracula-ccusage.sh hides prefix when show-prefix is false" {
+    # Test hiding prefix
+    export TMUX_OPT__dracula_ccusage_show_prefix="false"
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "\$75.00"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy and modify dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "\$75.00" ]  # No prefix
+}
+
+@test "dracula-ccusage.sh shows default prefix when show-prefix is true" {
+    # Test showing default prefix explicitly
+    export TMUX_OPT__dracula_ccusage_show_prefix="true"
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "\$25.00"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy and modify dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "Claude \$25.00" ]  # Default prefix
+}
+
+@test "dracula-ccusage.sh custom format ignores prefix even when show-prefix is true" {
+    # Custom format should not have prefix even if show-prefix is true
+    export TMUX_OPT__dracula_ccusage_display="custom"
+    export TMUX_OPT__dracula_ccusage_show_prefix="true"
+    export TMUX_OPT__dracula_ccusage_prefix="TEST "
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "Custom: \$123.45"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy and modify dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "Custom: \$123.45" ]  # No prefix for custom format
+}
+
+@test "dracula-ccusage.sh combines custom prefix with different display formats" {
+    # Test custom prefix with remaining format
+    export TMUX_OPT__dracula_ccusage_display="remaining"
+    export TMUX_OPT__dracula_ccusage_prefix="API Usage "
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "\$39.45/\$200"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy and modify dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "API Usage \$39.45/\$200" ]
+}
+
+@test "dracula-ccusage.sh handles empty prefix correctly" {
+    # Test empty prefix
+    export TMUX_OPT__dracula_ccusage_prefix=""
+    export TMUX_OPT__dracula_ccusage_show_prefix="true"
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "\$99.99"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy and modify dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "\$99.99" ]  # No prefix when empty
+}
+
+@test "dracula-ccusage.sh prefix works with all non-custom formats" {
+    # Test prefix with all formats except custom
+    formats=("status" "remaining" "percentage" "today" "total" "daily_today" "daily_total")
+    
+    for format in "${formats[@]}"; do
+        export TMUX_OPT__dracula_ccusage_display="$format"
+        export TMUX_OPT__dracula_ccusage_prefix="Test "
+        
+        # Create a mock tmux-ccusage.sh
+        cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+echo "OUTPUT"
+EOF
+        chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+        
+        # Copy and modify dracula-ccusage.sh
+        cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+        sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+        
+        run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+        [ "$status" -eq 0 ]
+        [ "$output" = "Test OUTPUT" ]
+    done
+}

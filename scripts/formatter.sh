@@ -15,18 +15,27 @@ if ! command -v get_today_cost &> /dev/null; then
     source "$SCRIPT_DIR/json_parser.sh"
 fi
 
+# Get currency symbol (default: $)
+get_currency_symbol() {
+    echo "${CCUSAGE_CURRENCY_SYMBOL:-\$}"
+}
+
 # Format daily today cost
 format_daily_today() {
     local cost
+    local currency
     cost=$(get_today_cost)
-    echo "\$$cost"
+    currency=$(get_currency_symbol)
+    echo "${currency}${cost}"
 }
 
 # Format daily total cost
 format_daily_total() {
     local cost
+    local currency
     cost=$(get_total_cost)
-    echo "\$$cost"
+    currency=$(get_currency_symbol)
+    echo "${currency}${cost}"
 }
 
 # Format both today and total
@@ -36,9 +45,11 @@ format_both() {
     
     local today
     local total
+    local currency
     today=$(echo "$json_data" | get_today_cost)
     total=$(echo "$json_data" | get_total_cost)
-    echo "Today: \$$today | Total: \$$total"
+    currency=$(get_currency_symbol)
+    echo "Today: ${currency}${today} | Total: ${currency}${total}"
 }
 
 # Format remaining quota
@@ -60,7 +71,9 @@ format_remaining() {
         remaining="0.00"
     fi
     
-    echo "\$$remaining/\$$subscription"
+    local currency
+    currency=$(get_currency_symbol)
+    echo "${currency}${remaining}/${currency}${subscription}"
 }
 
 # Format usage percentage
@@ -114,9 +127,11 @@ format_status() {
     fi
     
     # Format output
-    local output="\$$total"
+    local currency
+    currency=$(get_currency_symbol)
+    local output="${currency}${total}"
     if [ "$subscription" != "0" ]; then
-        output="$output/\$$subscription (${percentage}%)"
+        output="$output/${currency}${subscription} (${percentage}%)"
     fi
     
     # Apply colors if enabled
@@ -139,10 +154,21 @@ format_custom() {
     daily=$(echo "$json_data" | get_today_cost)
     total=$(echo "$json_data" | get_total_cost)
     
-    # Replace placeholders
-    format="${format//\#\{daily\}/\$$daily}"
-    format="${format//\#\{total\}/\$$total}"
-    format="${format//\#\{today\}/\$$daily}"
+    # Get currency symbol
+    local currency
+    currency=$(get_currency_symbol)
+    
+    # Replace currency placeholder first
+    format="${format//\#\{currency\}/${currency}}"
+    
+    # Then replace other placeholders (with currency if not preceded by currency placeholder)
+    # Check if the placeholder is preceded by the currency symbol to avoid double currency
+    format="${format//\#\{daily\}/${currency}${daily}}"
+    format="${format//\#\{total\}/${currency}${total}}"
+    format="${format//\#\{today\}/${currency}${daily}}"
+    
+    # Handle cases where currency was explicitly used before placeholders
+    format="${format//${currency}${currency}/${currency}}"
     
     echo "$format"
 }
@@ -150,6 +176,8 @@ format_custom() {
 # Format monthly current cost
 format_monthly_current() {
     local cost
+    local currency
     cost=$(get_current_month_cost)
-    echo "\$$cost"
+    currency=$(get_currency_symbol)
+    echo "${currency}${cost}"
 }

@@ -136,3 +136,39 @@ load test_helper
     result=$(echo "$monthly_json" | format_monthly_current)
     [ "$result" = "\$450.25" ]
 }
+
+@test "test_format_with_custom_currency_symbol - Should use custom currency symbol" {
+    export CCUSAGE_CURRENCY_SYMBOL="💰"
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_daily_today)
+    [ "$result" = "💰17.96" ]
+    unset CCUSAGE_CURRENCY_SYMBOL
+}
+
+@test "test_format_remaining_with_custom_currency - Should use custom currency for remaining" {
+    export CCUSAGE_CURRENCY_SYMBOL="💰"
+    export CCUSAGE_SUBSCRIPTION_AMOUNT="200"
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_remaining)
+    [ "$result" = "💰39.45/💰200" ]
+    unset CCUSAGE_CURRENCY_SYMBOL
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+}
+
+@test "test_format_status_with_custom_currency - Should use custom currency in status" {
+    export CCUSAGE_CURRENCY_SYMBOL="💰"
+    export CCUSAGE_SUBSCRIPTION_AMOUNT="200"
+    export CCUSAGE_ENABLE_COLORS="false"
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_status)
+    [ "$result" = "💰160.55/💰200 (80%)" ]
+    unset CCUSAGE_CURRENCY_SYMBOL
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+    unset CCUSAGE_ENABLE_COLORS
+}
+
+@test "test_format_custom_with_currency_placeholder - Should support currency in custom format" {
+    export CCUSAGE_CURRENCY_SYMBOL="💰"
+    export CCUSAGE_CUSTOM_FORMAT='Cost: #{currency}#{today} (Total: #{currency}#{total})'
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_custom)
+    [ "$result" = "Cost: 💰17.96 (Total: 💰160.55)" ]
+    unset CCUSAGE_CURRENCY_SYMBOL
+    unset CCUSAGE_CUSTOM_FORMAT
+}
