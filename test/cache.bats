@@ -18,7 +18,7 @@ teardown() {
 
 @test "test_cache_write - Cache file should be created" {
     # Write to cache
-    echo "$MOCK_JSON" | write_cache
+    echo "$MOCK_MULTI_DAY_JSON" | write_cache
     
     # Check if cache file exists
     local cache_file
@@ -28,24 +28,24 @@ teardown() {
 
 @test "test_cache_write - Cache should contain the JSON data" {
     # Write to cache
-    echo "$MOCK_JSON" | write_cache
+    echo "$MOCK_MULTI_DAY_JSON" | write_cache
     
     # Check cache content
     local cache_file
     cache_file=$(get_cache_file)
     local cached_content=$(cat "$cache_file")
-    [ "$cached_content" = "$MOCK_JSON" ]
+    [ "$cached_content" = "$MOCK_MULTI_DAY_JSON" ]
 }
 
 @test "test_cache_read - Should read cached data" {
     # Write test data to cache
     local cache_file
     cache_file=$(get_cache_file)
-    echo "$MOCK_JSON" > "$cache_file"
+    echo "$MOCK_MULTI_DAY_JSON" > "$cache_file"
     
     # Read from cache
     local result=$(read_cache)
-    [ "$result" = "$MOCK_JSON" ]
+    [ "$result" = "$MOCK_MULTI_DAY_JSON" ]
 }
 
 @test "test_cache_expiry - Fresh cache should be valid" {
@@ -54,7 +54,7 @@ teardown() {
     # Write to cache
     local cache_file
     cache_file=$(get_cache_file)
-    echo "$MOCK_JSON" > "$cache_file"
+    echo "$MOCK_MULTI_DAY_JSON" > "$cache_file"
     
     # Check if cache is valid
     is_cache_valid
@@ -66,7 +66,7 @@ teardown() {
     # Write to cache
     local cache_file
     cache_file=$(get_cache_file)
-    echo "$MOCK_JSON" > "$cache_file"
+    echo "$MOCK_MULTI_DAY_JSON" > "$cache_file"
     
     # Manually modify file timestamp to simulate expiry
     touch -t 202001010000 "$cache_file"
@@ -109,14 +109,14 @@ teardown() {
     
     # The mock ccusage now returns multi-day data
     local expected_json='{
-                  "daily": [
-                    {"date": "2025-07-14", "totalCost": 8.94},
-                    {"date": "2025-07-15", "totalCost": 3.20},
-                    {"date": "2025-07-16", "totalCost": 130.45},
-                    {"date": "2025-07-17", "totalCost": 17.96}
-                  ],
-                  "totals": {"totalCost": 160.55}
-                }'
+  "daily": [
+    {"date": "2025-07-14", "totalCost": 8.94},
+    {"date": "2025-07-15", "totalCost": 3.20},
+    {"date": "2025-07-16", "totalCost": 130.45},
+    {"date": "2025-07-17", "totalCost": 17.96}
+  ],
+  "totals": {"totalCost": 160.55}
+}'
     [ "$result" = "$expected_json" ]
 }
 
@@ -152,13 +152,13 @@ teardown() {
     
     # The mock ccusage now returns multi-day data
     local expected_json='{
-                  "daily": [
-                    {"date": "2025-07-14", "totalCost": 8.94},
-                    {"date": "2025-07-15", "totalCost": 3.20},
-                    {"date": "2025-07-16", "totalCost": 130.45},
-                    {"date": "2025-07-17", "totalCost": 17.96}
-                  ],
-                  "totals": {"totalCost": 160.55}
-                }'
+  "daily": [
+    {"date": "2025-07-14", "totalCost": 8.94},
+    {"date": "2025-07-15", "totalCost": 3.20},
+    {"date": "2025-07-16", "totalCost": 130.45},
+    {"date": "2025-07-17", "totalCost": 17.96}
+  ],
+  "totals": {"totalCost": 160.55}
+}'
     [ "$result2" = "$expected_json" ]
 }
