@@ -31,19 +31,7 @@ load test_helper
 }
 
 @test "test_monthly_json - Should extract current month cost" {
-    # 使用與 commit 33e43763 相同的月度 JSON 資料
-    local monthly_json='{
-        "monthly": [
-            {
-                "month": "2025-07",
-                "totalCost": 450.25
-            }
-        ],
-        "totals": {
-            "totalCost": 450.25
-        }
-    }'
-    
+    # Use multi-month data from MOCK_MONTHLY_JSON
     # Mock the current month
     export MOCK_CURRENT_MONTH="2025-07"
     date() {
@@ -55,7 +43,7 @@ load test_helper
     }
     export -f date
     
-    result=$(echo "$monthly_json" | get_current_month_cost)
+    result=$(echo "$MOCK_MONTHLY_JSON" | get_current_month_cost)
     [ "$result" = "450.25" ]
     
     unset -f date

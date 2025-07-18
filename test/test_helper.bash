@@ -31,13 +31,13 @@ ccusage() {
             if [[ "$@" == *"-j"* ]] || [[ "$@" == *"--json"* ]]; then
                 # Return multi-month data to test parsing of last entry
                 echo '{
-                  "monthly": [
-                    {"month": "2025-05", "totalCost": 120.50},
-                    {"month": "2025-06", "totalCost": 380.75},
-                    {"month": "2025-07", "totalCost": 450.25}
-                  ],
-                  "totals": {"totalCost": 951.50}
-                }'
+  "monthly": [
+    {"month": "2025-05", "totalCost": 120.50},
+    {"month": "2025-06", "totalCost": 380.75},
+    {"month": "2025-07", "totalCost": 450.25}
+  ],
+  "totals": {"totalCost": 951.50}
+}'
             else
                 echo "Monthly usage report"
             fi
@@ -53,14 +53,14 @@ ccusage() {
             if [[ "$@" == *"-j"* ]] || [[ "$@" == *"--json"* ]]; then
                 # Return multi-day data to test parsing of last entry
                 echo '{
-                  "daily": [
-                    {"date": "2025-07-14", "totalCost": 8.94},
-                    {"date": "2025-07-15", "totalCost": 3.20},
-                    {"date": "2025-07-16", "totalCost": 130.45},
-                    {"date": "2025-07-17", "totalCost": 17.96}
-                  ],
-                  "totals": {"totalCost": 160.55}
-                }'
+  "daily": [
+    {"date": "2025-07-14", "totalCost": 8.94},
+    {"date": "2025-07-15", "totalCost": 3.20},
+    {"date": "2025-07-16", "totalCost": 130.45},
+    {"date": "2025-07-17", "totalCost": 17.96}
+  ],
+  "totals": {"totalCost": 160.55}
+}'
             else
                 echo "Daily usage report"
             fi
@@ -70,7 +70,6 @@ ccusage() {
 export -f ccusage
 
 # Common test data
-export MOCK_JSON='{"daily":[{"date":"2025-07-17","totalCost":17.96}],"totals":{"totalCost":160.55}}'
 export MOCK_MONTHLY_JSON='{
   "monthly": [
     {"month": "2025-05", "totalCost": 120.50},
