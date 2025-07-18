@@ -106,7 +106,18 @@ teardown() {
     
     # Get data (should fetch)
     local result=$(get_cached_or_fetch "daily")
-    [ "$result" = "$MOCK_JSON" ]
+    
+    # The mock ccusage now returns multi-day data
+    local expected_json='{
+                  "daily": [
+                    {"date": "2025-07-14", "totalCost": 8.94},
+                    {"date": "2025-07-15", "totalCost": 3.20},
+                    {"date": "2025-07-16", "totalCost": 130.45},
+                    {"date": "2025-07-17", "totalCost": 17.96}
+                  ],
+                  "totals": {"totalCost": 160.55}
+                }'
+    [ "$result" = "$expected_json" ]
 }
 
 @test "test_get_cached_or_fetch - Cache file should be created after fetch" {
@@ -138,5 +149,16 @@ teardown() {
     
     # Get data again (should use cache)
     local result2=$(get_cached_or_fetch "daily")
-    [ "$result2" = "$MOCK_JSON" ]
+    
+    # The mock ccusage now returns multi-day data
+    local expected_json='{
+                  "daily": [
+                    {"date": "2025-07-14", "totalCost": 8.94},
+                    {"date": "2025-07-15", "totalCost": 3.20},
+                    {"date": "2025-07-16", "totalCost": 130.45},
+                    {"date": "2025-07-17", "totalCost": 17.96}
+                  ],
+                  "totals": {"totalCost": 160.55}
+                }'
+    [ "$result2" = "$expected_json" ]
 }
