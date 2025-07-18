@@ -178,54 +178,44 @@ set -g status-right '#(@ccusage_custom) | %H:%M'
 
 ### Dracula Theme Integration
 
-If you're using the [Dracula tmux theme](https://github.com/dracula/tmux), you can integrate tmux-ccusage as a custom plugin:
+If you're using the [Dracula tmux theme](https://github.com/dracula/tmux), tmux-ccusage automatically integrates with it!
 
-#### Installation Steps
-
-1. Install both plugins via TPM:
 ```tmux
+# Install both plugins via TPM
 set -g @plugin 'dracula/tmux'
 set -g @plugin 'recca0120/tmux-ccusage'
-```
 
-2. Create a symlink for Dracula integration:
-```bash
-# After installing via TPM
-ln -sf ~/.tmux/plugins/tmux-ccusage/scripts/ccusage ~/.tmux/plugins/tmux/scripts/ccusage
-```
+# Configure Dracula to show ccusage
+set -g @dracula-plugins "cpu-usage custom:ccusage time"
 
-3. Configure in your `.tmux.conf`:
-```tmux
-# Configure Dracula to show the custom plugin
-set -g @dracula-plugins "cpu-usage time custom:ccusage"
+# Optional: Configure display format
+# Options: status, daily_today, daily_total, monthly_current, monthly_total, remaining, percentage
+set -g @dracula-ccusage-display "status"
 
-# Configure ccusage display format for Dracula
-set -g @ccusage_dracula_format 'status'      # Options: daily_today, monthly_current, remaining, percentage, status
-set -g @ccusage_dracula_show_icon 'true'     # Show/hide the money icon
-set -g @ccusage_dracula_icon '💰'            # Custom icon (default: 💰)
+# Optional: Customize colors for ccusage
+# Available colors: white, gray, dark_gray, light_purple, dark_purple, cyan, green, orange, red, pink, yellow
+set -g @dracula-custom:ccusage-colors "cyan dark_gray"
 
-# Set custom plugin colors
-set -g @dracula-custom:ccusage-colors "green dark_gray"
-
-# Regular ccusage configuration still applies
+# Configure ccusage plugin options
+set -g @ccusage_report_type 'daily'
 set -g @ccusage_subscription_amount '200'
 set -g @ccusage_warning_threshold '80'
 set -g @ccusage_critical_threshold '95'
 ```
 
+When you install tmux-ccusage, it automatically detects if Dracula theme is installed and sets up the integration by copying the necessary script to Dracula's scripts directory.
+
 #### Display Format Options
 
 | Format | Description | Example Output |
 |--------|-------------|----------------|
-| `daily_today` | Today's cost | `💰 $17.96` |
-| `monthly_current` | Current month cost | `💰 $450.25` |
-| `remaining` | Remaining quota | `💰 $39.45/$200` |
-| `percentage` | Usage percentage | `💰 80.3%` |
-| `status` | Full status with colors | `💰 $160.55/$200 (80.3%)` |
-
-Available colors for Dracula custom plugins:
-- `white`, `gray`, `dark_gray`, `light_purple`, `dark_purple`
-- `cyan`, `green`, `orange`, `red`, `pink`, `yellow`
+| `daily_today` | Today's cost | `$17.96` |
+| `daily_total` | Total daily cost | `$160.55` |
+| `monthly_current` | Current month cost | `$450.25` |
+| `monthly_total` | Total monthly cost | `$785.32` |
+| `remaining` | Remaining quota | `$39.45/$200` |
+| `percentage` | Usage percentage | `80.3%` |
+| `status` | Full status with colors | `$160.55/$200 (80.3%)` |
 
 ## Development
 
@@ -269,7 +259,7 @@ npm install -g bats
 tmux-ccusage/
 ├── tmux-ccusage.sh      # Main entry point
 ├── tmux-ccusage.tmux    # TPM plugin file
-├── dracula-ccusage.sh   # Dracula theme integration wrapper
+├── ccusage              # Dracula theme integration wrapper
 ├── scripts/
 │   ├── json_parser.sh   # JSON parsing functions
 │   ├── cache.sh         # Cache management
@@ -279,10 +269,11 @@ tmux-ccusage/
 │   ├── formatter.bats   # Display formatter tests
 │   ├── json_parser.bats # JSON parsing tests
 │   ├── integration.bats # Main script integration tests
-│   ├── dracula_integration.bats # Dracula theme tests
 │   ├── test_helper.bash # Test helper functions
 │   ├── run_tests.sh     # Test runner
 │   └── tmux_integration.sh # Tmux integration tests
+├── examples/
+│   └── dracula-config.conf # Example Dracula theme configuration
 ├── install.sh           # Installation script
 └── README.md            # This file
 ```
