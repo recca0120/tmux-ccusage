@@ -39,7 +39,7 @@ load test_helper
     unset CCUSAGE_OFFLINE
     
     # Set up test cache directory
-    local test_cache_dir="$PROJECT_ROOT/test/tmp/cache_integration"
+    local test_cache_dir="$PROJECT_ROOT/tests/tmp/cache_integration"
     mkdir -p "$test_cache_dir"
     
     # Clear cache first
