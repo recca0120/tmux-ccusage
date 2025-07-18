@@ -150,3 +150,39 @@ EOF
         [ "$output" = "Claude $current_output" ]
     done
 }
+
+@test "dracula-ccusage.sh does not prepend 'Claude' for custom format" {
+    # Set custom display format
+    export TMUX_OPT__dracula_ccusage_display="custom"
+    custom_output="My Custom Output: \$123.45"
+    
+    # Create a mock that outputs custom format
+    {
+        echo '#!/usr/bin/env bash'
+        echo "echo '$custom_output'"
+    } > "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy and modify dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "$custom_output" ]  # No "Claude" prefix
+}
+
+@test "dracula-ccusage.sh fallback returns plain $0.00 for custom format" {
+    # Set custom display format
+    export TMUX_OPT__dracula_ccusage_display="custom"
+    
+    # Create dracula-ccusage.sh without tmux-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    
+    # Modify to use non-existent paths
+    sed -i.bak 's|${HOME}|/nonexistent|g' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "\$0.00" ]  # No "Claude" prefix for custom format
+}
