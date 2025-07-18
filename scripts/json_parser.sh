@@ -16,35 +16,25 @@ extract_last_daily_cost() {
     local json_data
     json_data=$(cat | normalize_json)
     
-    # Find all totalCost values in daily entries and get the last one
-    local costs
-    costs=$(echo "$json_data" | grep -A 100 '"daily"' | grep -B 100 ']' | grep '"totalCost"' | sed 's/.*"totalCost":[[:space:]]*\([0-9.]*\).*/\1/')
+    # Get all date lines with their line numbers
+    local date_lines
+    date_lines=$(echo "$json_data" | grep -n '"date"')
     
-    # Count how many costs we found
-    local count
-    count=$(echo "$costs" | wc -l)
+    # Get the last date line number
+    local last_date_line
+    last_date_line=$(echo "$date_lines" | tail -1 | cut -d: -f1)
     
-    # In the real data, modelBreakdowns also has cost fields
-    # The pattern is: for each daily entry, there's one totalCost followed by costs in modelBreakdowns
-    # So we need to skip the modelBreakdowns costs
-    
-    # Get all the costs and filter out the ones from modelBreakdowns
-    # Simple heuristic: daily entry totalCosts are usually at positions 1, n+1, 2n+1, etc.
-    # where n is the number of models in modelBreakdowns
-    
-    # For now, let's use a different approach: 
-    # Count dates to know how many daily entries we have
-    local date_count
-    date_count=$(echo "$json_data" | grep -A 100 '"daily"' | grep -B 100 ']' | grep -c '"date"')
-    
-    if [ "$date_count" -gt 0 ]; then
-        # Get the totalCost at position that corresponds to the last date
-        # This is a workaround - we're getting the date_count-th totalCost
-        local last_cost
-        last_cost=$(echo "$costs" | sed -n "${date_count}p")
+    if [ -n "$last_date_line" ]; then
+        # Look for totalCost after the last date, but stop at modelBreakdowns
+        local entry_section
+        entry_section=$(echo "$json_data" | sed -n "${last_date_line},\$p" | sed '/modelBreakdowns/,$d')
         
-        if [ -n "$last_cost" ]; then
-            echo "$last_cost"
+        # Extract the totalCost value
+        local cost
+        cost=$(echo "$entry_section" | grep '"totalCost"' | head -1 | sed 's/.*"totalCost":[[:space:]]*\([0-9.]*\).*/\1/')
+        
+        if [ -n "$cost" ]; then
+            echo "$cost"
         else
             echo "0"
         fi
