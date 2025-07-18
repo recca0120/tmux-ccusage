@@ -75,7 +75,8 @@ EOF
     # Create a mock tmux-ccusage.sh that outputs the format it received
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "FORMAT=$1"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}FORMAT=$1"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -94,7 +95,8 @@ EOF
     # Create a mock tmux-ccusage.sh
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "FORMAT=$1"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}FORMAT=$1"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -111,7 +113,8 @@ EOF
     # Create a mock tmux-ccusage.sh that outputs a cost
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "\$17.96"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$17.96"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -134,11 +137,8 @@ EOF
         current_output="${outputs[$i]}"
         
         # Create a mock that outputs based on the format
-        # Write script with escaped output
-        {
-            echo '#!/usr/bin/env bash'
-            echo "echo '$current_output'"
-        } > "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+        # Write script with escaped output that respects CCUSAGE_PREFIX
+        printf '#!/usr/bin/env bash\nprefix="${CCUSAGE_PREFIX:-}"\necho "${prefix}%s"\n' "$current_output" > "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
         chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
         
         # Copy and modify dracula-ccusage.sh
@@ -147,7 +147,7 @@ EOF
         
         run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
         [ "$status" -eq 0 ]
-        [ "$output" = "Claude $current_output" ]
+        [ "$output" = "Claude ${current_output}" ]
     done
 }
 
@@ -196,7 +196,8 @@ EOF
     # Create a mock tmux-ccusage.sh
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "\$100.00"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$100.00"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -216,7 +217,8 @@ EOF
     # Create a mock tmux-ccusage.sh
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "\$50.00"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$50.00"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -236,7 +238,8 @@ EOF
     # Create a mock tmux-ccusage.sh
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "\$75.00"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$75.00"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -256,7 +259,8 @@ EOF
     # Create a mock tmux-ccusage.sh
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "\$25.00"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$25.00"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -278,6 +282,7 @@ EOF
     # Create a mock tmux-ccusage.sh
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
+# Custom format should not prepend prefix
 echo "Custom: \$123.45"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
@@ -299,7 +304,8 @@ EOF
     # Create a mock tmux-ccusage.sh
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "\$39.45/\$200"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$39.45/\$200"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -320,7 +326,8 @@ EOF
     # Create a mock tmux-ccusage.sh
     cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "\$99.99"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$99.99"
 EOF
     chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
     
@@ -344,7 +351,8 @@ EOF
         # Create a mock tmux-ccusage.sh
         cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
 #!/usr/bin/env bash
-echo "OUTPUT"
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}OUTPUT"
 EOF
         chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
         

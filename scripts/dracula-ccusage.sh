@@ -7,78 +7,59 @@
 # Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Function to get tmux option with default value
+# Find tmux-ccusage.sh
+TMUX_CCUSAGE=""
+for path in "$SCRIPT_DIR/../tmux-ccusage.sh" \
+            "$SCRIPT_DIR/tmux-ccusage.sh" \
+            "${HOME}/.tmux/plugins/tmux-ccusage/tmux-ccusage.sh"; do
+    if [ -x "$path" ]; then
+        TMUX_CCUSAGE="$path"
+        break
+    fi
+done
+
+# Simple get_tmux_option function (only what we need)
 get_tmux_option() {
     local option=$1
     local default_value=$2
     
-    # In test mode, use environment variables instead of tmux
     if [ -n "${TMUX_TEST_MODE:-}" ]; then
+        # Test mode - use environment variables
         local var_name="TMUX_OPT_${option//@/_}"
         var_name="${var_name//-/_}"
-        # Check if the variable is set (even if empty)
         if eval "[ -n \"\${${var_name}+x}\" ]"; then
             eval "echo \"\${${var_name}}\""
         else
             echo "$default_value"
         fi
-        return
-    fi
-    
-    local option_value=$(tmux show-option -gqv "$option" 2>/dev/null)
-    
-    if [ -z "$option_value" ]; then
-        echo "$default_value"
     else
-        echo "$option_value"
+        # Production mode - use tmux
+        local value=$(tmux show-option -gqv "$option" 2>/dev/null)
+        echo "${value:-$default_value}"
     fi
 }
 
-# Get display format from tmux option
+# Get Dracula-specific options
 display_format=$(get_tmux_option "@dracula-ccusage-display" "status")
-
-# Get prefix from tmux option (default: "Claude ")
-prefix=$(get_tmux_option "@dracula-ccusage-prefix" "Claude ")
-
-# Check if prefix should be shown (default: true, except for custom format)
+dracula_prefix=$(get_tmux_option "@dracula-ccusage-prefix" "Claude ")
 show_prefix=$(get_tmux_option "@dracula-ccusage-show-prefix" "true")
 
-# Disable colors when called from Dracula theme
+# Disable colors for Dracula theme
 export CCUSAGE_ENABLE_COLORS="false"
 
-# Check if tmux-ccusage.sh exists in the parent directory (when in scripts/)
-if [ -x "$SCRIPT_DIR/../tmux-ccusage.sh" ]; then
-    # Call tmux-ccusage with specified format
-    result="$("$SCRIPT_DIR/../tmux-ccusage.sh" "$display_format")"
-    # Handle prefix display
-    if [ "$display_format" = "custom" ] || [ "$show_prefix" = "false" ]; then
-        echo "$result"
-    else
-        echo "${prefix}${result}"
-    fi
-elif [ -x "$SCRIPT_DIR/tmux-ccusage.sh" ]; then
-    # Check same directory (for compatibility)
-    result="$("$SCRIPT_DIR/tmux-ccusage.sh" "$display_format")"
-    if [ "$display_format" = "custom" ] || [ "$show_prefix" = "false" ]; then
-        echo "$result"
-    else
-        echo "${prefix}${result}"
-    fi
+# Set prefix if needed (except for custom format)
+if [ "$display_format" != "custom" ] && [ "$show_prefix" = "true" ]; then
+    export CCUSAGE_PREFIX="$dracula_prefix"
+fi
+
+# Execute tmux-ccusage.sh if found
+if [ -n "$TMUX_CCUSAGE" ]; then
+    exec "$TMUX_CCUSAGE" "$display_format"
+fi
+
+# Fallback output
+if [ "$display_format" = "custom" ] || [ "$show_prefix" = "false" ]; then
+    echo "\$0.00"
 else
-    # Fallback to check in standard tmux plugin path
-    CCUSAGE_PATH="${HOME}/.tmux/plugins/tmux-ccusage/tmux-ccusage.sh"
-    if [ -x "$CCUSAGE_PATH" ]; then
-        result="$("$CCUSAGE_PATH" "$display_format")"
-        if [ "$display_format" = "custom" ] || [ "$show_prefix" = "false" ]; then
-            echo "$result"
-        else
-            echo "${prefix}${result}"
-        fi
-    else
-        if [ "$display_format" = "custom" ] || [ "$show_prefix" = "false" ]; then
-            echo "\$0.00"
-        else
-            echo "${prefix}\$0.00"
-        fi
-    fi
+    echo "${dracula_prefix}\$0.00"
 fi

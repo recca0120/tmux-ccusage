@@ -172,3 +172,52 @@ load test_helper
     unset CCUSAGE_CURRENCY_SYMBOL
     unset CCUSAGE_CUSTOM_FORMAT
 }
+
+@test "test_format_with_global_prefix - Should prepend global prefix to all formats" {
+    export CCUSAGE_PREFIX="Claude "
+    
+    # Test daily_today format
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_daily_today)
+    [ "$result" = "Claude \$17.96" ]
+    
+    # Test remaining format
+    export CCUSAGE_SUBSCRIPTION_AMOUNT="200"
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_remaining)
+    [ "$result" = "Claude \$39.45/\$200" ]
+    
+    unset CCUSAGE_PREFIX
+    unset CCUSAGE_SUBSCRIPTION_AMOUNT
+}
+
+@test "test_format_with_prefix_and_currency - Should work with both prefix and currency" {
+    export CCUSAGE_PREFIX="AI: "
+    export CCUSAGE_CURRENCY_SYMBOL="💰"
+    
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_daily_today)
+    [ "$result" = "AI: 💰17.96" ]
+    
+    unset CCUSAGE_PREFIX
+    unset CCUSAGE_CURRENCY_SYMBOL
+}
+
+@test "test_format_custom_ignores_global_prefix - Custom format should not auto-prepend prefix" {
+    export CCUSAGE_PREFIX="Claude "
+    export CCUSAGE_CUSTOM_FORMAT='My format: #{today}'
+    
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_custom)
+    [ "$result" = "My format: \$17.96" ]
+    
+    unset CCUSAGE_PREFIX
+    unset CCUSAGE_CUSTOM_FORMAT
+}
+
+@test "test_format_custom_with_prefix_placeholder - Should support prefix in custom format" {
+    export CCUSAGE_PREFIX="Claude "
+    export CCUSAGE_CUSTOM_FORMAT='#{prefix}#{today}'
+    
+    result=$(echo "$MOCK_MULTI_DAY_JSON" | format_custom)
+    [ "$result" = "Claude \$17.96" ]
+    
+    unset CCUSAGE_PREFIX
+    unset CCUSAGE_CUSTOM_FORMAT
+}
