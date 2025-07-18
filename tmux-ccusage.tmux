@@ -49,8 +49,8 @@ if [ -d "$DRACULA_DIR" ] && [ -f "$DRACULA_DIR/dracula.tmux" ]; then
     
     # Always copy dracula-ccusage.sh to Dracula's scripts directory as 'ccusage'
     # Force copy to ensure updates are applied
-    if [ -f "$CURRENT_DIR/dracula-ccusage.sh" ]; then
-        cp -f "$CURRENT_DIR/dracula-ccusage.sh" "$DRACULA_DIR/scripts/ccusage"
+    if [ -f "$CURRENT_DIR/scripts/dracula-ccusage.sh" ]; then
+        cp -f "$CURRENT_DIR/scripts/dracula-ccusage.sh" "$DRACULA_DIR/scripts/ccusage"
         chmod +x "$DRACULA_DIR/scripts/ccusage"
     fi
 fi
