@@ -18,7 +18,7 @@ jobs:
       with:
         scandir: '.'
         severity: error
-        ignore_paths: test coverage
+        ignore_paths: tests coverage
         format: gcc
         check_together: 'yes'
         disable_matcher: true
@@ -62,7 +62,7 @@ jobs:
             echo "15.3.1"
             ;;
           "daily"|"monthly"|"session"|"blocks"|*)
-            if [[ "$@" == *"-j"* ]] || [[ "$@" == *"--json"* ]]; then
+            if [[ "$*" == *"-j"* ]] || [[ "$*" == *"--json"* ]]; then
               cat << 'JSON'
         {
           "daily": [
@@ -89,13 +89,13 @@ jobs:
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         export TMUX_TEST_MODE=1
-        ./test/run_tests.sh
+        ./tests/run_tests.sh
     
     - name: Run tmux integration tests
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         # Run tmux integration tests
-        ./test/tmux_integration.sh
+        ./tests/tmux_integration.sh
     
     - name: Cleanup tmux sessions
       if: always()
@@ -119,7 +119,7 @@ jobs:
         mkdir -p coverage
         
         # Run tests with kcov
-        kcov --exclude-pattern=/usr/,/tmp/,test/,/home/runner/.local/bin/ coverage ./test/run_tests.sh || true
+        kcov --exclude-pattern=/usr/,/tmp/,tests/,/home/runner/.local/bin/ coverage ./tests/run_tests.sh || true
         
         # Generate coverage summary
         if [ -f coverage/index.html ]; then
