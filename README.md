@@ -180,26 +180,48 @@ set -g status-right '#(@ccusage_custom) | %H:%M'
 
 If you're using the [Dracula tmux theme](https://github.com/dracula/tmux), you can integrate tmux-ccusage as a custom plugin:
 
+#### Installation Steps
+
+1. Install both plugins via TPM:
 ```tmux
-# Add to your .tmux.conf
 set -g @plugin 'dracula/tmux'
 set -g @plugin 'recca0120/tmux-ccusage'
+```
 
+2. Create a symlink for Dracula integration:
+```bash
+# After installing via TPM
+ln -sf ~/.tmux/plugins/tmux-ccusage/scripts/ccusage ~/.tmux/plugins/tmux/scripts/ccusage
+```
+
+3. Configure in your `.tmux.conf`:
+```tmux
 # Configure Dracula to show the custom plugin
-set -g @dracula-plugins "cpu-usage time custom:dracula-ccusage"
+set -g @dracula-plugins "cpu-usage time custom:ccusage"
+
+# Configure ccusage display format for Dracula
+set -g @ccusage_dracula_format 'status'      # Options: daily_today, monthly_current, remaining, percentage, status
+set -g @ccusage_dracula_show_icon 'true'     # Show/hide the money icon
+set -g @ccusage_dracula_icon '💰'            # Custom icon (default: 💰)
 
 # Set custom plugin colors
-set -g @dracula-custom-plugin-colors "green dark_gray"
+set -g @dracula-custom:ccusage-colors "green dark_gray"
 
-# Configure ccusage display format
-set -g @ccusage_custom_format "Today: #{daily} | Total: #{total}"
-set -g @dracula-ccusage-display "custom"
-
-# Enable powerline style
-set -g @dracula-show-powerline true
-set -g @dracula-show-left-sep 
-set -g @dracula-show-right-sep 
+# Regular ccusage configuration still applies
+set -g @ccusage_subscription_amount '200'
+set -g @ccusage_warning_threshold '80'
+set -g @ccusage_critical_threshold '95'
 ```
+
+#### Display Format Options
+
+| Format | Description | Example Output |
+|--------|-------------|----------------|
+| `daily_today` | Today's cost | `💰 $17.96` |
+| `monthly_current` | Current month cost | `💰 $450.25` |
+| `remaining` | Remaining quota | `💰 $39.45/$200` |
+| `percentage` | Usage percentage | `💰 80.3%` |
+| `status` | Full status with colors | `💰 $160.55/$200 (80.3%)` |
 
 Available colors for Dracula custom plugins:
 - `white`, `gray`, `dark_gray`, `light_purple`, `dark_purple`

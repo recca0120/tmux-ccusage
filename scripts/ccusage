@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Dracula theme custom plugin wrapper for tmux-ccusage
+# This file should be symlinked or copied to ~/.tmux/plugins/tmux/scripts/ccusage
+
+# Find the tmux-ccusage plugin directory
+TMUX_CCUSAGE_DIR=""
+
+# Check common TPM plugin locations
+for dir in "$HOME/.tmux/plugins/tmux-ccusage" "$HOME/.config/tmux/plugins/tmux-ccusage" "$XDG_CONFIG_HOME/tmux/plugins/tmux-ccusage"; do
+    if [ -d "$dir" ] && [ -f "$dir/scripts/dracula-ccusage.sh" ]; then
+        TMUX_CCUSAGE_DIR="$dir"
+        break
+    fi
+done
+
+# If not found, try to find it relative to this script
+if [ -z "$TMUX_CCUSAGE_DIR" ]; then
+    # If this script is symlinked, resolve the real path
+    SCRIPT_PATH="$(readlink -f "$0" 2>/dev/null || readlink "$0" 2>/dev/null || echo "$0")"
+    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+    
+    # Check if we're in the tmux-ccusage plugin directory
+    if [ -f "$SCRIPT_DIR/dracula-ccusage.sh" ]; then
+        "$SCRIPT_DIR/dracula-ccusage.sh"
+    elif [ -f "$(dirname "$SCRIPT_DIR")/scripts/dracula-ccusage.sh" ]; then
+        "$(dirname "$SCRIPT_DIR")/scripts/dracula-ccusage.sh"
+    else
+        echo "tmux-ccusage not found!"
+    fi
+else
+    "$TMUX_CCUSAGE_DIR/scripts/dracula-ccusage.sh"
+fi
