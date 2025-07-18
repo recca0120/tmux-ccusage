@@ -136,14 +136,17 @@ Use placeholders to create custom formats:
 
 ```tmux
 # Available placeholders:
-# %today - Today's cost
-# %total - Total cost
-# %monthly - Monthly cost
-# %remaining - Remaining amount
-# %subscription - Subscription amount
-# %percentage - Usage percentage
+# #{today} - Today's cost
+# #{total} - Total cost  
+# #{monthly} - Monthly cost
+# #{remaining} - Remaining amount
+# #{subscription} - Subscription amount
+# #{percentage} - Usage percentage
+# #{currency} - Currency symbol
 
-set -g @ccusage_custom_format 'Today: %today (Total: %total)'
+set -g @ccusage_custom_format 'Today: #{today} (Total: #{total})'
+# Or with explicit currency placement
+set -g @ccusage_custom_format 'Cost: #{currency}#{today}'
 set -g status-right '#{@ccusage_custom} | %H:%M'
 ```
 
@@ -157,6 +160,17 @@ set -g @ccusage_enable_colors 'true'
 set -g @ccusage_color_normal 'colour46'   # Green
 set -g @ccusage_color_warning 'colour226'  # Yellow
 set -g @ccusage_color_critical 'colour196' # Red
+```
+
+### Currency Symbol
+
+```tmux
+# Use custom currency symbol (default: $)
+set -g @ccusage_currency_symbol '💰'  # Money bag emoji
+# Or any other symbol
+set -g @ccusage_currency_symbol '€'     # Euro sign
+set -g @ccusage_currency_symbol '¥'     # Yen sign
+set -g @ccusage_currency_symbol '£'     # Pound sign
 ```
 
 ## Dracula Theme Integration
@@ -176,6 +190,58 @@ set -g @dracula-ccusage-display "remaining"
 
 # Configure ccusage options
 set -g @ccusage_subscription_amount '200'
+```
+
+### Dracula Integration Options
+
+Control how tmux-ccusage integrates with Dracula:
+
+```tmux
+# Disable auto-integration (default: true)
+set -g @ccusage_dracula_auto_integrate 'false'
+
+# Enable verbose messages during integration
+set -g @ccusage_dracula_auto_integrate_verbose 'true'
+
+# Disable backup of existing scripts (default: true)
+set -g @ccusage_dracula_backup_custom 'false'
+
+# Force integration (overwrite custom scripts)
+set -g @ccusage_dracula_auto_integrate 'force'
+```
+
+### Dracula Display Options
+
+Customize the display prefix and format:
+
+```tmux
+# Change the prefix (default: "Claude ")
+set -g @dracula-ccusage-prefix "AI "
+
+# Hide the prefix completely
+set -g @dracula-ccusage-show-prefix 'false'
+
+# Choose display format
+set -g @dracula-ccusage-display "remaining"
+```
+
+| Option | Values | Default | Description |
+|--------|--------|---------|-------------|
+| `@ccusage_dracula_auto_integrate` | true/false/force | true | Control automatic integration |
+| `@ccusage_dracula_auto_integrate_verbose` | true/false | false | Show integration messages |
+| `@ccusage_dracula_backup_custom` | true/false | true | Backup existing custom scripts |
+| `@dracula-ccusage-prefix` | Any text | Claude  | Prefix text before value |
+| `@dracula-ccusage-show-prefix` | true/false | true | Show/hide the prefix |
+
+### Manual Integration
+
+If you prefer manual setup:
+
+```bash
+# Copy the integration script
+cp ~/.tmux/plugins/tmux-ccusage/scripts/dracula-ccusage.sh \
+   ~/.tmux/plugins/tmux/scripts/ccusage
+chmod +x ~/.tmux/plugins/tmux/scripts/ccusage
 ```
 
 ### Dracula Display Formats
