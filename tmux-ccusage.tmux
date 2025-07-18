@@ -37,3 +37,19 @@ set_tmux_option "@ccusage_custom" "#($CURRENT_DIR/tmux-ccusage.sh custom)"
 set_tmux_option "@ccusage_today" "#($CURRENT_DIR/tmux-ccusage.sh daily_today)"
 set_tmux_option "@ccusage_total" "#($CURRENT_DIR/tmux-ccusage.sh daily_total)"
 set_tmux_option "@ccusage_monthly" "#($CURRENT_DIR/tmux-ccusage.sh monthly_current)"
+
+# Dracula theme integration
+# Check if Dracula theme is installed (dracula/tmux installs to 'tmux' directory)
+DRACULA_DIR="${HOME}/.tmux/plugins/tmux"
+if [ -d "$DRACULA_DIR" ] && [ -f "$DRACULA_DIR/dracula.tmux" ]; then
+    # Create scripts directory if it doesn't exist
+    if [ ! -d "$DRACULA_DIR/scripts" ]; then
+        mkdir -p "$DRACULA_DIR/scripts"
+    fi
+    
+    # Copy dracula-ccusage.sh to Dracula's scripts directory as 'ccusage'
+    if [ -f "$CURRENT_DIR/dracula-ccusage.sh" ]; then
+        cp "$CURRENT_DIR/dracula-ccusage.sh" "$DRACULA_DIR/scripts/ccusage"
+        chmod +x "$DRACULA_DIR/scripts/ccusage"
+    fi
+fi
