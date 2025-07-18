@@ -16,12 +16,19 @@ A tmux plugin to display Claude API usage information in your status bar.
 - 🎨 Multiple customizable display formats
 - 🔧 Support all ccusage command options
 - 🎯 TDD development with comprehensive tests
+- 🚀 Pure bash implementation (no external dependencies like jq)
+- 🎭 Dracula theme integration support
 
 ## Requirements
 
 - tmux 2.1+
 - [ccusage](https://github.com/zckly/ccusage) CLI tool (`npm install -g ccusage`)
-- bc or awk (optional, for decimal arithmetic)
+- bash (for shell scripts)
+
+### Optional Dependencies
+
+- bc (for decimal arithmetic, falls back to awk if not available)
+- [Dracula theme](https://draculatheme.com/tmux) (for theme integration)
 
 ## Installation
 
