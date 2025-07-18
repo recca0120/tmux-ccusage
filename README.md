@@ -259,11 +259,11 @@ npm install -g bats
 tmux-ccusage/
 ├── tmux-ccusage.sh      # Main entry point
 ├── tmux-ccusage.tmux    # TPM plugin file
-├── dracula-ccusage.sh   # Dracula theme integration wrapper
 ├── scripts/
 │   ├── json_parser.sh   # JSON parsing functions
 │   ├── cache.sh         # Cache management
-│   └── formatter.sh     # Display formatters
+│   ├── formatter.sh     # Display formatters
+│   └── dracula-ccusage.sh # Dracula theme integration wrapper
 ├── test/
 │   ├── cache.bats       # Cache functionality tests
 │   ├── formatter.bats   # Display formatter tests

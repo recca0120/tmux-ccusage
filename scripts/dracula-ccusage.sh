@@ -39,9 +39,13 @@ display_format=$(get_tmux_option "@dracula-ccusage-display" "status")
 # Disable colors when called from Dracula theme
 export CCUSAGE_ENABLE_COLORS="false"
 
-# Check if tmux-ccusage.sh exists in the same directory
-if [ -x "$SCRIPT_DIR/tmux-ccusage.sh" ]; then
+# Check if tmux-ccusage.sh exists in the parent directory (when in scripts/)
+if [ -x "$SCRIPT_DIR/../tmux-ccusage.sh" ]; then
     # Call tmux-ccusage with specified format and prepend "Claude"
+    result="$("$SCRIPT_DIR/../tmux-ccusage.sh" "$display_format")"
+    echo "Claude $result"
+elif [ -x "$SCRIPT_DIR/tmux-ccusage.sh" ]; then
+    # Check same directory (for compatibility)
     result="$("$SCRIPT_DIR/tmux-ccusage.sh" "$display_format")"
     echo "Claude $result"
 else
