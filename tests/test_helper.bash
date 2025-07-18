@@ -22,13 +22,13 @@ ccusage() {
             ;;
         "monthly")
             # Check if offline mode is requested and no cache exists
-            if [[ "$@" == *"--offline"* ]] && [ ! -f "$CCUSAGE_CACHE_DIR/ccusage.json" ]; then
+            if [[ "$*" == *"--offline"* ]] && [ ! -f "$CCUSAGE_CACHE_DIR/ccusage.json" ]; then
                 # Simulate error when offline with no cache
                 echo "Error: Offline mode requested but no cached data available" >&2
                 return 1
             fi
             
-            if [[ "$@" == *"-j"* ]] || [[ "$@" == *"--json"* ]]; then
+            if [[ "$*" == *"-j"* ]] || [[ "$*" == *"--json"* ]]; then
                 # Return multi-month data to test parsing of last entry
                 echo '{
   "monthly": [
@@ -44,13 +44,13 @@ ccusage() {
             ;;
         "daily"|"session"|"blocks"|*)
             # Check if offline mode is requested and no cache exists
-            if [[ "$@" == *"--offline"* ]] && [ ! -f "$CCUSAGE_CACHE_DIR/ccusage.json" ]; then
+            if [[ "$*" == *"--offline"* ]] && [ ! -f "$CCUSAGE_CACHE_DIR/ccusage.json" ]; then
                 # Simulate error when offline with no cache
                 echo "Error: Offline mode requested but no cached data available" >&2
                 return 1
             fi
             
-            if [[ "$@" == *"-j"* ]] || [[ "$@" == *"--json"* ]]; then
+            if [[ "$*" == *"-j"* ]] || [[ "$*" == *"--json"* ]]; then
                 # Return multi-day data to test parsing of last entry
                 echo '{
   "daily": [
