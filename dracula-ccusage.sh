@@ -41,14 +41,16 @@ export CCUSAGE_ENABLE_COLORS="false"
 
 # Check if tmux-ccusage.sh exists in the same directory
 if [ -x "$SCRIPT_DIR/tmux-ccusage.sh" ]; then
-    # Call tmux-ccusage with specified format
-    "$SCRIPT_DIR/tmux-ccusage.sh" "$display_format"
+    # Call tmux-ccusage with specified format and prepend "Claude"
+    result="$("$SCRIPT_DIR/tmux-ccusage.sh" "$display_format")"
+    echo "Claude $result"
 else
     # Fallback to check in standard tmux plugin path
     CCUSAGE_PATH="${HOME}/.tmux/plugins/tmux-ccusage/tmux-ccusage.sh"
     if [ -x "$CCUSAGE_PATH" ]; then
-        "$CCUSAGE_PATH" "$display_format"
+        result="$("$CCUSAGE_PATH" "$display_format")"
+        echo "Claude $result"
     else
-        echo "\$0.00"
+        echo "Claude \$0.00"
     fi
 fi
