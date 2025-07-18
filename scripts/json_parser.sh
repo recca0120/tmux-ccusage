@@ -18,10 +18,36 @@ extract_last_daily_cost() {
     
     # Find all totalCost values in daily entries and get the last one
     local costs
-    costs=$(echo "$json_data" | grep -A 100 '"daily"' | grep -B 100 '^[[:space:]]*]' | grep '"totalCost"' | tail -1 | sed 's/.*"totalCost":[[:space:]]*\([0-9.]*\).*/\1/')
+    costs=$(echo "$json_data" | grep -A 100 '"daily"' | grep -B 100 ']' | grep '"totalCost"' | sed 's/.*"totalCost":[[:space:]]*\([0-9.]*\).*/\1/')
     
-    if [ -n "$costs" ]; then
-        echo "$costs"
+    # Count how many costs we found
+    local count
+    count=$(echo "$costs" | wc -l)
+    
+    # In the real data, modelBreakdowns also has cost fields
+    # The pattern is: for each daily entry, there's one totalCost followed by costs in modelBreakdowns
+    # So we need to skip the modelBreakdowns costs
+    
+    # Get all the costs and filter out the ones from modelBreakdowns
+    # Simple heuristic: daily entry totalCosts are usually at positions 1, n+1, 2n+1, etc.
+    # where n is the number of models in modelBreakdowns
+    
+    # For now, let's use a different approach: 
+    # Count dates to know how many daily entries we have
+    local date_count
+    date_count=$(echo "$json_data" | grep -A 100 '"daily"' | grep -B 100 ']' | grep -c '"date"')
+    
+    if [ "$date_count" -gt 0 ]; then
+        # Get the totalCost at position that corresponds to the last date
+        # This is a workaround - we're getting the date_count-th totalCost
+        local last_cost
+        last_cost=$(echo "$costs" | sed -n "${date_count}p")
+        
+        if [ -n "$last_cost" ]; then
+            echo "$last_cost"
+        else
+            echo "0"
+        fi
     else
         echo "0"
     fi
