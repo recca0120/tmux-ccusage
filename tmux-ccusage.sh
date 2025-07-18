@@ -88,6 +88,7 @@ main() {
     export CCUSAGE_DAYS=${CCUSAGE_DAYS:-$(get_tmux_option "@ccusage_days" "")}
     export CCUSAGE_MONTHS=${CCUSAGE_MONTHS:-$(get_tmux_option "@ccusage_months" "")}
     export CCUSAGE_CURRENCY_SYMBOL=${CCUSAGE_CURRENCY_SYMBOL:-$(get_tmux_option "@ccusage_currency_symbol" "")}
+    export CCUSAGE_PREFIX=${CCUSAGE_PREFIX:-$(get_tmux_option "@ccusage_prefix" "")}
     export CCUSAGE_MODE=${CCUSAGE_MODE:-$(get_tmux_option "@ccusage_mode" "auto")}
     export CCUSAGE_ORDER=${CCUSAGE_ORDER:-$(get_tmux_option "@ccusage_order" "asc")}
     export CCUSAGE_BREAKDOWN=${CCUSAGE_BREAKDOWN:-$(get_tmux_option "@ccusage_breakdown" "false")}

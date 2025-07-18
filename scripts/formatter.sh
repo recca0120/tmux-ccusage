@@ -20,22 +20,31 @@ get_currency_symbol() {
     echo "${CCUSAGE_CURRENCY_SYMBOL:-\$}"
 }
 
+# Get prefix (default: empty)
+get_prefix() {
+    echo "${CCUSAGE_PREFIX:-}"
+}
+
 # Format daily today cost
 format_daily_today() {
     local cost
     local currency
+    local prefix
     cost=$(get_today_cost)
     currency=$(get_currency_symbol)
-    echo "${currency}${cost}"
+    prefix=$(get_prefix)
+    echo "${prefix}${currency}${cost}"
 }
 
 # Format daily total cost
 format_daily_total() {
     local cost
     local currency
+    local prefix
     cost=$(get_total_cost)
     currency=$(get_currency_symbol)
-    echo "${currency}${cost}"
+    prefix=$(get_prefix)
+    echo "${prefix}${currency}${cost}"
 }
 
 # Format both today and total
@@ -46,10 +55,12 @@ format_both() {
     local today
     local total
     local currency
+    local prefix
     today=$(echo "$json_data" | get_today_cost)
     total=$(echo "$json_data" | get_total_cost)
     currency=$(get_currency_symbol)
-    echo "Today: ${currency}${today} | Total: ${currency}${total}"
+    prefix=$(get_prefix)
+    echo "${prefix}Today: ${currency}${today} | Total: ${currency}${total}"
 }
 
 # Format remaining quota
@@ -72,8 +83,10 @@ format_remaining() {
     fi
     
     local currency
+    local prefix
     currency=$(get_currency_symbol)
-    echo "${currency}${remaining}/${currency}${subscription}"
+    prefix=$(get_prefix)
+    echo "${prefix}${currency}${remaining}/${currency}${subscription}"
 }
 
 # Format usage percentage
@@ -83,11 +96,13 @@ format_percentage() {
     
     local total
     local subscription="${CCUSAGE_SUBSCRIPTION_AMOUNT:-0}"
+    local prefix
     
     total=$(echo "$json_data" | get_total_cost)
+    prefix=$(get_prefix)
     
     if [ "$subscription" = "0" ]; then
-        echo "N/A"
+        echo "${prefix}N/A"
         return
     fi
     
@@ -95,7 +110,7 @@ format_percentage() {
     local percentage
     percentage=$(awk -v s="$subscription" -v t="$total" 'BEGIN {printf "%.1f", (t / s) * 100}')
     
-    echo "${percentage}%"
+    echo "${prefix}${percentage}%"
 }
 
 # Format status with color coding
@@ -128,8 +143,10 @@ format_status() {
     
     # Format output
     local currency
+    local prefix
     currency=$(get_currency_symbol)
-    local output="${currency}${total}"
+    prefix=$(get_prefix)
+    local output="${prefix}${currency}${total}"
     if [ "$subscription" != "0" ]; then
         output="$output/${currency}${subscription} (${percentage}%)"
     fi
@@ -158,8 +175,13 @@ format_custom() {
     local currency
     currency=$(get_currency_symbol)
     
-    # Replace currency placeholder first
+    # Get prefix
+    local prefix
+    prefix=$(get_prefix)
+    
+    # Replace placeholders
     format="${format//\#\{currency\}/${currency}}"
+    format="${format//\#\{prefix\}/${prefix}}"
     
     # Then replace other placeholders (with currency if not preceded by currency placeholder)
     # Check if the placeholder is preceded by the currency symbol to avoid double currency
@@ -177,7 +199,9 @@ format_custom() {
 format_monthly_current() {
     local cost
     local currency
+    local prefix
     cost=$(get_current_month_cost)
     currency=$(get_currency_symbol)
-    echo "${currency}${cost}"
+    prefix=$(get_prefix)
+    echo "${prefix}${currency}${cost}"
 }

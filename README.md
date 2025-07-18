@@ -101,6 +101,8 @@ set -g status-right 'Claude: #{@ccusage_status} | %H:%M'
 | `#{@ccusage_status}` | Full status with colors | `$160.55/$200 (80.3%)` |
 | `#{@ccusage_custom}` | Custom format | Based on your template |
 
+Note: If you set `@ccusage_prefix`, it will be prepended to all standard formats (but not custom).
+
 ## Configuration
 
 ### Basic Settings
@@ -143,10 +145,11 @@ Use placeholders to create custom formats:
 # #{subscription} - Subscription amount
 # #{percentage} - Usage percentage
 # #{currency} - Currency symbol
+# #{prefix} - Global prefix
 
 set -g @ccusage_custom_format 'Today: #{today} (Total: #{total})'
-# Or with explicit currency placement
-set -g @ccusage_custom_format 'Cost: #{currency}#{today}'
+# Or with explicit currency and prefix
+set -g @ccusage_custom_format '#{prefix}Cost: #{currency}#{today}'
 set -g status-right '#{@ccusage_custom} | %H:%M'
 ```
 
@@ -171,6 +174,19 @@ set -g @ccusage_currency_symbol '💰'  # Money bag emoji
 set -g @ccusage_currency_symbol '€'     # Euro sign
 set -g @ccusage_currency_symbol '¥'     # Yen sign
 set -g @ccusage_currency_symbol '£'     # Pound sign
+```
+
+### Global Prefix
+
+```tmux
+# Add a prefix to all outputs (except custom format)
+set -g @ccusage_prefix 'Claude '      # Default: empty
+set -g @ccusage_prefix 'AI: '         # Custom prefix
+set -g @ccusage_prefix '🤖 '          # Robot emoji
+
+# The prefix is automatically added to standard formats
+# For custom formats, use #{prefix} placeholder
+set -g @ccusage_custom_format '#{prefix}Cost: #{today}'
 ```
 
 ## Dracula Theme Integration

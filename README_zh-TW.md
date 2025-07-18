@@ -101,6 +101,8 @@ set -g status-right 'Claude: #{@ccusage_status} | %H:%M'
 | `#{@ccusage_status}` | 完整狀態（含顏色） | `$160.55/$200 (80.3%)` |
 | `#{@ccusage_custom}` | 自訂格式 | 根據您的模板 |
 
+注意：如果設定了 `@ccusage_prefix`，它會被加在所有標準格式前（自訂格式除外）。
+
 ## 設定選項
 
 ### 基本設定
@@ -143,10 +145,11 @@ set -g @ccusage_until '20250731'  # 結束日期
 # #{subscription} - 訂閱金額
 # #{percentage} - 使用百分比
 # #{currency} - 貨幣符號
+# #{prefix} - 全域前綴
 
 set -g @ccusage_custom_format '今日: #{today} (總計: #{total})'
-# 或明確指定貨幣位置
-set -g @ccusage_custom_format '花費: #{currency}#{today}'
+# 或明確指定貨幣和前綴
+set -g @ccusage_custom_format '#{prefix}花費: #{currency}#{today}'
 set -g status-right '#{@ccusage_custom} | %H:%M'
 ```
 
@@ -171,6 +174,19 @@ set -g @ccusage_currency_symbol '💰'  # 錢袋表情
 set -g @ccusage_currency_symbol '€'     # 歐元符號
 set -g @ccusage_currency_symbol '¥'     # 日圓符號
 set -g @ccusage_currency_symbol '£'     # 英鎊符號
+```
+
+### 全域前綴
+
+```tmux
+# 為所有輸出加入前綴（自訂格式除外）
+set -g @ccusage_prefix 'Claude '      # 預設：空字串
+set -g @ccusage_prefix 'AI: '         # 自訂前綴
+set -g @ccusage_prefix '🤖 '          # 機器人表情
+
+# 前綴會自動加在標準格式前
+# 自訂格式需使用 #{prefix} 佔位符
+set -g @ccusage_custom_format '#{prefix}花費： #{today}'
 ```
 
 ## Dracula 主題整合
