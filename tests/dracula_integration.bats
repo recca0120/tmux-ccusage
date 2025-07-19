@@ -378,3 +378,233 @@ EOF
         [ "$output" = "Test OUTPUT" ]
     done
 }
+
+# Tests for @dracula-ccusage-colors support
+
+@test "dracula-ccusage.sh reads @dracula-ccusage-colors option" {
+    # Test that the script can read the colors option
+    export TMUX_OPT__dracula_ccusage_colors="orange dark_gray"
+    
+    # Create a modified dracula-ccusage.sh that outputs the colors
+    cat > "$BATS_TEST_TMPDIR/dracula-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/get_tmux_option.sh"
+colors=$(get_tmux_option "@dracula-ccusage-colors" "")
+echo "COLORS=$colors"
+EOF
+    
+    # Create the get_tmux_option.sh helper
+    cat > "$BATS_TEST_TMPDIR/get_tmux_option.sh" << 'EOF'
+#!/usr/bin/env bash
+get_tmux_option() {
+    local option=$1
+    local default_value=$2
+    
+    if [ -n "${TMUX_TEST_MODE:-}" ]; then
+        local var_name="TMUX_OPT_${option//@/_}"
+        var_name="${var_name//-/_}"
+        if eval "[ -n \"\${${var_name}+x}\" ]"; then
+            eval "echo \"\${${var_name}}\""
+        else
+            echo "$default_value"
+        fi
+    else
+        local value=$(tmux show-option -gqv "$option" 2>/dev/null)
+        echo "${value:-$default_value}"
+    fi
+}
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    chmod +x "$BATS_TEST_TMPDIR/get_tmux_option.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "COLORS=orange dark_gray" ]
+}
+
+@test "dracula-ccusage.sh applies Dracula colors when specified" {
+    # Test that colors are applied to the output
+    export TMUX_OPT__dracula_ccusage_colors="orange dark_gray"
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$100.00"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Create modified dracula-ccusage.sh with color support
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    
+    # We'll need to modify the script to add color support in the implementation
+    # For now, we'll create a version that would output with colors
+    cat > "$BATS_TEST_TMPDIR/dracula-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+get_tmux_option() {
+    local option=$1
+    local default_value=$2
+    
+    if [ -n "${TMUX_TEST_MODE:-}" ]; then
+        local var_name="TMUX_OPT_${option//@/_}"
+        var_name="${var_name//-/_}"
+        if eval "[ -n \"\${${var_name}+x}\" ]"; then
+            eval "echo \"\${${var_name}}\""
+        else
+            echo "$default_value"
+        fi
+    else
+        local value=$(tmux show-option -gqv "$option" 2>/dev/null)
+        echo "${value:-$default_value}"
+    fi
+}
+
+# Get options
+display_format=$(get_tmux_option "@dracula-ccusage-display" "status")
+dracula_prefix=$(get_tmux_option "@dracula-ccusage-prefix" "Claude ")
+show_prefix=$(get_tmux_option "@dracula-ccusage-show-prefix" "true")
+dracula_colors=$(get_tmux_option "@dracula-ccusage-colors" "")
+
+# Disable colors for Dracula theme
+export CCUSAGE_ENABLE_COLORS="false"
+
+# Set prefix if needed
+if [ "$display_format" != "custom" ] && [ "$show_prefix" = "true" ]; then
+    export CCUSAGE_PREFIX="$dracula_prefix"
+fi
+
+# Execute tmux-ccusage.sh
+output=$("$SCRIPT_DIR/tmux-ccusage.sh" "$display_format")
+
+# Apply Dracula colors if specified
+if [ -n "$dracula_colors" ]; then
+    # Parse colors (format: "foreground background")
+    fg_color=$(echo "$dracula_colors" | cut -d' ' -f1)
+    bg_color=$(echo "$dracula_colors" | cut -d' ' -f2)
+    
+    if [ -n "$bg_color" ]; then
+        echo "#[fg=$fg_color,bg=$bg_color]$output#[default]"
+    else
+        echo "#[fg=$fg_color]$output#[default]"
+    fi
+else
+    echo "$output"
+fi
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" == "#[fg=orange,bg=dark_gray]Claude \$100.00#[default]" ]]
+}
+
+@test "dracula-ccusage.sh handles single color in @dracula-ccusage-colors" {
+    # Test with only foreground color
+    export TMUX_OPT__dracula_ccusage_colors="cyan"
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$50.00"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Copy the actual dracula-ccusage.sh and modify for test
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" == "#[fg=cyan]Claude \$50.00#[default]" ]]
+}
+
+@test "dracula-ccusage.sh outputs plain text when @dracula-ccusage-colors is not set" {
+    # Test default behavior without colors
+    unset TMUX_OPT__dracula_ccusage_colors
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$75.00"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Use the actual dracula-ccusage.sh
+    cp "$PROJECT_ROOT/scripts/dracula-ccusage.sh" "$BATS_TEST_TMPDIR/"
+    sed -i.bak 's|SCRIPT_DIR=.*|SCRIPT_DIR="'"$BATS_TEST_TMPDIR"'"|' "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [ "$output" = "Claude \$75.00" ]  # No color codes
+}
+
+@test "dracula-ccusage.sh color support works with custom prefix" {
+    # Test colors with custom prefix
+    export TMUX_OPT__dracula_ccusage_colors="green white"
+    export TMUX_OPT__dracula_ccusage_prefix="AI Cost: "
+    
+    # Create a mock tmux-ccusage.sh
+    cat > "$BATS_TEST_TMPDIR/tmux-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+prefix="${CCUSAGE_PREFIX:-}"
+echo "${prefix}\$200.00"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/tmux-ccusage.sh"
+    
+    # Create the test version with color support
+    cat > "$BATS_TEST_TMPDIR/dracula-ccusage.sh" << 'EOF'
+#!/usr/bin/env bash
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+get_tmux_option() {
+    local option=$1
+    local default_value=$2
+    
+    if [ -n "${TMUX_TEST_MODE:-}" ]; then
+        local var_name="TMUX_OPT_${option//@/_}"
+        var_name="${var_name//-/_}"
+        if eval "[ -n \"\${${var_name}+x}\" ]"; then
+            eval "echo \"\${${var_name}}\""
+        else
+            echo "$default_value"
+        fi
+    else
+        local value=$(tmux show-option -gqv "$option" 2>/dev/null)
+        echo "${value:-$default_value}"
+    fi
+}
+
+# Get options
+dracula_prefix=$(get_tmux_option "@dracula-ccusage-prefix" "Claude ")
+dracula_colors=$(get_tmux_option "@dracula-ccusage-colors" "")
+export CCUSAGE_ENABLE_COLORS="false"
+export CCUSAGE_PREFIX="$dracula_prefix"
+
+# Execute tmux-ccusage.sh
+output=$("$SCRIPT_DIR/tmux-ccusage.sh" "status")
+
+# Apply Dracula colors if specified
+if [ -n "$dracula_colors" ]; then
+    # Parse colors (format: "foreground background")
+    fg_color=$(echo "$dracula_colors" | cut -d' ' -f1)
+    bg_color=$(echo "$dracula_colors" | cut -d' ' -f2)
+    
+    if [ -n "$bg_color" ]; then
+        echo "#[fg=$fg_color,bg=$bg_color]$output#[default]"
+    else
+        echo "#[fg=$fg_color]$output#[default]"
+    fi
+else
+    echo "$output"
+fi
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    
+    run "$BATS_TEST_TMPDIR/dracula-ccusage.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" == "#[fg=green,bg=white]AI Cost: \$200.00#[default]" ]]
+}

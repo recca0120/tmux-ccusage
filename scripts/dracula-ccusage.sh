@@ -43,6 +43,7 @@ get_tmux_option() {
 display_format=$(get_tmux_option "@dracula-ccusage-display" "status")
 dracula_prefix=$(get_tmux_option "@dracula-ccusage-prefix" "Claude ")
 show_prefix=$(get_tmux_option "@dracula-ccusage-show-prefix" "true")
+dracula_colors=$(get_tmux_option "@dracula-ccusage-colors" "")
 
 # Disable colors for Dracula theme
 export CCUSAGE_ENABLE_COLORS="false"
@@ -54,12 +55,44 @@ fi
 
 # Execute tmux-ccusage.sh if found
 if [ -n "$TMUX_CCUSAGE" ]; then
-    exec "$TMUX_CCUSAGE" "$display_format"
+    output=$("$TMUX_CCUSAGE" "$display_format")
+    
+    # Apply Dracula colors if specified
+    if [ -n "$dracula_colors" ]; then
+        # Parse colors (format: "foreground background")
+        fg_color=$(echo "$dracula_colors" | cut -d' ' -f1)
+        bg_color=$(echo "$dracula_colors" | cut -d' ' -f2)
+        
+        # Check if we have both colors or just one
+        if [ "$fg_color" != "$bg_color" ] && [ -n "$bg_color" ]; then
+            echo "#[fg=$fg_color,bg=$bg_color]$output#[default]"
+        else
+            echo "#[fg=$fg_color]$output#[default]"
+        fi
+    else
+        echo "$output"
+    fi
+    exit 0
 fi
 
 # Fallback output
 if [ "$display_format" = "custom" ] || [ "$show_prefix" = "false" ]; then
-    echo "\$0.00"
+    output="\$0.00"
 else
-    echo "${dracula_prefix}\$0.00"
+    output="${dracula_prefix}\$0.00"
+fi
+
+# Apply colors to fallback if specified
+if [ -n "$dracula_colors" ]; then
+    fg_color=$(echo "$dracula_colors" | cut -d' ' -f1)
+    bg_color=$(echo "$dracula_colors" | cut -d' ' -f2)
+    
+    # Check if we have both colors or just one
+    if [ "$fg_color" != "$bg_color" ] && [ -n "$bg_color" ]; then
+        echo "#[fg=$fg_color,bg=$bg_color]$output#[default]"
+    else
+        echo "#[fg=$fg_color]$output#[default]"
+    fi
+else
+    echo "$output"
 fi

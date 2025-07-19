@@ -239,6 +239,10 @@ set -g @dracula-ccusage-show-prefix 'false'
 
 # Choose display format
 set -g @dracula-ccusage-display "remaining"
+
+# Override colors specifically for ccusage
+# (takes precedence over @dracula-custom-plugin-colors)
+set -g @dracula-ccusage-colors "cyan dark_gray"
 ```
 
 | Option | Values | Default | Description |
@@ -248,6 +252,7 @@ set -g @dracula-ccusage-display "remaining"
 | `@ccusage_dracula_backup_custom` | true/false | true | Backup existing custom scripts |
 | `@dracula-ccusage-prefix` | Any text | Claude  | Prefix text before value |
 | `@dracula-ccusage-show-prefix` | true/false | true | Show/hide the prefix |
+| `@dracula-ccusage-colors` | fg [bg] | (none) | Override colors for ccusage widget |
 
 ### Manual Integration
 
